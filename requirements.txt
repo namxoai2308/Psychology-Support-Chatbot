@@ -1,0 +1,22 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-multipart==0.0.6
+sqlalchemy==2.0.23
+pydantic==2.5.0
+pydantic-settings==2.1.0
+pydantic[email]==2.5.0
+python-dotenv==1.0.0
+email-validator==2.1.0
+google-generativeai>=0.8.0
+PyPDF2==3.0.1
+langchain==0.1.0
+langchain-google-genai==0.0.5
+tiktoken==0.5.2
+# PDF OCR with DeepSeek
+pdf2image==1.16.3
+Pillow==10.1.0
+openai==1.3.0
+

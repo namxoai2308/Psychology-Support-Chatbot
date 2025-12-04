@@ -1,0 +1,43 @@
+venv/
+<<<<<<< HEAD
+__pycache__/
+*.pkl
+instance/
+.env
+backend/chatbot.db
+=======
+backend/__pycache__/
+frontend/__pycache__/
+__pycache__/
+backend/app/__pycache__/
+backend/app/core/__pycache__/
+backend/app/models/__pycache__/
+backend/app/schemas/__pycache__/
+backend/app/services/__pycache__/
+backend/app/utils/__pycache__/
+backend/app/routers/__pycache__/
+backend/app/api/__pycache__/
+backend/app/api/dependencies/__pycache__/
+backend/app/api/dependencies/auth/__pycache__/
+backend/app/api/dependencies/auth/schemas/__pycache__/
+backend/app/api/dependencies/auth/schemas/token/__pycache__/
+backend/app/api/dependencies/auth/schemas/token/models/__pycache__/
+backend/app/api/dependencies/auth/schemas/token/models/token/__pycache__/
+backend/app/api/dependencies/auth/schemas/token/models/token/schemas/__pycache__/
+backend/app/api/dependencies/auth/schemas/token/models/token/schemas/token/__pycache__/
+backend/app/api/dependencies/auth/schemas/token/models/token/schemas/token/models/__pycache__/
+backend/app/api/dependencies/auth/schemas/token/models/token/schemas/token/models/token/__pycache__/
+backend/app/api/dependencies/auth/schemas/token/models/token/schemas/token/models/token/schemas/__pycache__/
+backend/app/api/dependencies/auth/schemas/token/models/token/schemas/token/models/token/schemas/token/__pycache__/
+backend/app/api/dependencies/auth/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/__pycache__/
+backend/app/api/dependencies/auth/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/__pycache__/
+backend/app/api/dependencies/auth/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/token/schemas/token/models/
+*.pkl
+instance/
+.env
+frontend/node_modules/
+backend/chatbot.db
+# Python venv
+venv/
+backend/venv/
+>>>>>>> 5cfe5c654 (Remove pycache and ignore it)
