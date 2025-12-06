@@ -219,9 +219,9 @@ class GeminiService:
     """Service for interacting with Gemini AI"""
     
     def __init__(self):
-        # Collect all available API keys
+        # Collect all available API keys (up to 15 keys)
         self.api_keys = [getattr(settings, f'GEMINI_API_KEY{i}' if i > 1 else 'GEMINI_API_KEY') 
-                        for i in range(1, 11) 
+                        for i in range(1, 16) 
                         if getattr(settings, f'GEMINI_API_KEY{i}' if i > 1 else 'GEMINI_API_KEY', None)]
         
         if not self.api_keys:
