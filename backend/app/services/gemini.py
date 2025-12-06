@@ -219,14 +219,30 @@ class GeminiService:
     """Service for interacting with Gemini AI"""
     
     def __init__(self):
-        genai.configure(api_key=settings.GEMINI_API_KEY)
+        # Collect all available API keys
+        self.api_keys = [getattr(settings, f'GEMINI_API_KEY{i}' if i > 1 else 'GEMINI_API_KEY') 
+                        for i in range(1, 11) 
+                        if getattr(settings, f'GEMINI_API_KEY{i}' if i > 1 else 'GEMINI_API_KEY', None)]
         
-        self.model = genai.GenerativeModel(
-            'gemini-2.0-flash-exp',
-            system_instruction=SYSTEM_PROMPT
-        )
+        if not self.api_keys:
+            raise ValueError("No Gemini API keys found!")
         
+        self.current_key_index = 0
+        self.model_name = 'gemini-2.0-flash'
+        self._init_model()
+        logger.info(f"🔑 Loaded {len(self.api_keys)} API keys, using key 1/{len(self.api_keys)}")
         self.rag = rag_service
+    
+    def _init_model(self):
+        """Initialize model with current API key"""
+        genai.configure(api_key=self.api_keys[self.current_key_index])
+        self.model = genai.GenerativeModel(self.model_name, system_instruction=SYSTEM_PROMPT)
+    
+    def _switch_to_next_key(self):
+        """Switch to next API key when quota exceeded"""
+        self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
+        self._init_model()
+        logger.warning(f"🔄 Switched to key {self.current_key_index + 1}/{len(self.api_keys)}")
     
     def process_school_pdf(self, pdf_path: str, filename: str, db: Session):
         """Process and save school PDF document"""
@@ -297,11 +313,21 @@ Hãy trả lời tự nhiên như cô đang chia sẻ kiến thức của mình 
             else:
                 enhanced_message = message
             
-            # Generate response using ChatSession
-            chat = self.model.start_chat(history=history)
-            response = chat.send_message(enhanced_message)
-            
-            return response.text
+            # Try with current key, auto-switch if quota exceeded
+            max_key_attempts = len(self.api_keys)
+            for key_attempt in range(max_key_attempts):
+                try:
+                    chat = self.model.start_chat(history=history)
+                    response = chat.send_message(enhanced_message)
+                    return response.text
+                except Exception as e:
+                    error_str = str(e)
+                    # Check if quota exceeded
+                    if ("429" in error_str or "ResourceExhausted" in error_str or "quota" in error_str.lower()) and key_attempt < max_key_attempts - 1:
+                        logger.warning(f"⚠️ Key {self.current_key_index + 1} quota exceeded, switching...")
+                        self._switch_to_next_key()
+                        continue
+                    raise
         
         except Exception as e:
             print(f"❌ Error generating response: {e}")
@@ -319,8 +345,7 @@ Cô sẽ cố gắng hỗ trợ em tốt hơn! 💪"""
     
     def generate_chat_title(self, first_message: str) -> str:
         """Generate a friendly title for chat session"""
-        try:
-            prompt = f"""Tạo tiêu đề ngắn gọn (3-6 từ) cho cuộc tư vấn tâm lý này:
+        prompt = f"""Tạo tiêu đề ngắn gọn (3-6 từ) cho cuộc tư vấn tâm lý này:
 "{first_message}"
 
 Tiêu đề nên:
@@ -329,17 +354,19 @@ Tiêu đề nên:
 - Thân thiện, không khô khan
 
 Chỉ trả về tiêu đề, không giải thích."""
-            
-            response = self.model.generate_content(prompt)
-            title = response.text.strip()
-            
-            # Remove quotes if present
-            title = title.strip('"').strip("'")
-            
-            return title if len(title) <= 50 else title[:47] + "..."
-            
-        except:
-            return "Cuộc trò chuyện mới"
+        
+        max_key_attempts = len(self.api_keys)
+        for key_attempt in range(max_key_attempts):
+            try:
+                response = self.model.generate_content(prompt)
+                title = response.text.strip().strip('"').strip("'")
+                return title if len(title) <= 50 else title[:47] + "..."
+            except Exception as e:
+                error_str = str(e)
+                if ("429" in error_str or "ResourceExhausted" in error_str or "quota" in error_str.lower()) and key_attempt < max_key_attempts - 1:
+                    self._switch_to_next_key()
+                    continue
+        return "Cuộc trò chuyện mới"
 
 
 # Global instance

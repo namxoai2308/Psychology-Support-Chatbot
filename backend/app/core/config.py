@@ -6,8 +6,17 @@ from typing import Optional
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
     
-    # API Keys
+    # API Keys - Support multiple keys for rotation
     GEMINI_API_KEY: str
+    GEMINI_API_KEY_2: Optional[str] = None
+    GEMINI_API_KEY_3: Optional[str] = None
+    GEMINI_API_KEY_4: Optional[str] = None
+    GEMINI_API_KEY_5: Optional[str] = None
+    GEMINI_API_KEY_6: Optional[str] = None
+    GEMINI_API_KEY_7: Optional[str] = None
+    GEMINI_API_KEY_8: Optional[str] = None
+    GEMINI_API_KEY_9: Optional[str] = None
+    GEMINI_API_KEY_10: Optional[str] = None
     
     # Security
     SECRET_KEY: str
