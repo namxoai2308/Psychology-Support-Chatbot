@@ -1,9 +1,12 @@
 """Gemini AI service for generating chat responses"""
 import google.generativeai as genai
+import logging
 from typing import List, Dict
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.services.rag import rag_service
+
+logger = logging.getLogger(__name__)
 
 
 # Enhanced system prompt - Cô giáo tâm lý
