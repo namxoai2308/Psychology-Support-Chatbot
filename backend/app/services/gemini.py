@@ -1,9 +1,12 @@
-"""Gemini AI service for generating chat responses"""
-import google.generativeai as genai
+"""Groq AI service for generating chat responses"""
+import requests
+import logging
 from typing import List, Dict
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.services.rag import rag_service
+
+logger = logging.getLogger(__name__)
 
 
 # Enhanced system prompt - Cô giáo tâm lý
@@ -216,32 +219,30 @@ Từ bây giờ, trong mọi câu trả lời, hãy đóng vai **Cô Xiêm** the
 
 
 class GeminiService:
-    """Service for interacting with Gemini AI"""
+    """Service for interacting with Groq AI"""
     
     def __init__(self):
         # Collect all available API keys (up to 15 keys)
-        self.api_keys = [getattr(settings, f'GEMINI_API_KEY{i}' if i > 1 else 'GEMINI_API_KEY') 
+        self.api_keys = [getattr(settings, f'GROQ_API_KEY{i}' if i > 1 else 'GROQ_API_KEY') 
                         for i in range(1, 16) 
-                        if getattr(settings, f'GEMINI_API_KEY{i}' if i > 1 else 'GEMINI_API_KEY', None)]
+                        if getattr(settings, f'GROQ_API_KEY{i}' if i > 1 else 'GROQ_API_KEY', None)]
         
         if not self.api_keys:
-            raise ValueError("No Gemini API keys found!")
+            raise ValueError("No Groq API keys found!")
         
         self.current_key_index = 0
-        self.model_name = 'gemini-2.0-flash'
-        self._init_model()
+        self.model_name = 'llama-3.3-70b-versatile'
+        self.api_url = 'https://api.groq.com/openai/v1/chat/completions'
         logger.info(f"🔑 Loaded {len(self.api_keys)} API keys, using key 1/{len(self.api_keys)}")
         self.rag = rag_service
     
-    def _init_model(self):
-        """Initialize model with current API key"""
-        genai.configure(api_key=self.api_keys[self.current_key_index])
-        self.model = genai.GenerativeModel(self.model_name, system_instruction=SYSTEM_PROMPT)
+    def _get_current_key(self):
+        """Get current API key"""
+        return self.api_keys[self.current_key_index]
     
     def _switch_to_next_key(self):
         """Switch to next API key when quota exceeded"""
         self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
-        self._init_model()
         logger.warning(f"🔄 Switched to key {self.current_key_index + 1}/{len(self.api_keys)}")
     
     def process_school_pdf(self, pdf_path: str, filename: str, db: Session):
@@ -297,36 +298,44 @@ Hãy trả lời tự nhiên như cô đang chia sẻ kiến thức của mình 
             # Get RAG context if database provided
             context_chunks, has_context = self.get_relevant_context(message, db) if db else ([], False)
             
-            # Build chat history for Gemini
-            history = []
+            # Build messages for Groq API
+            messages = [{"role": "system", "content": SYSTEM_PROMPT}]
             if chat_history:
-                for msg in chat_history[-10:]:  # Last 10 messages for context
-                    role = "user" if msg["role"] == "user" else "model"
-                    history.append({
-                        "role": role,
-                        "parts": [msg["content"]]
-                    })
+                for msg in chat_history[-10:]:
+                    messages.append({"role": msg["role"], "content": msg["content"]})
             
             # Integrate RAG context naturally
             if has_context:
                 enhanced_message = self._integrate_context_naturally(message, context_chunks)
             else:
                 enhanced_message = message
+            messages.append({"role": "user", "content": enhanced_message})
             
             # Try with current key, auto-switch if quota exceeded
             max_key_attempts = len(self.api_keys)
             for key_attempt in range(max_key_attempts):
                 try:
-                    chat = self.model.start_chat(history=history)
-                    response = chat.send_message(enhanced_message)
-                    return response.text
-                except Exception as e:
-                    error_str = str(e)
-                    # Check if quota exceeded
-                    if ("429" in error_str or "ResourceExhausted" in error_str or "quota" in error_str.lower()) and key_attempt < max_key_attempts - 1:
+                    res = requests.post(
+                        self.api_url,
+                        headers={"Authorization": f"Bearer {self._get_current_key()}"},
+                        json={"model": self.model_name, "messages": messages},
+                        timeout=30
+                    )
+                    res.raise_for_status()
+                    return res.json()["choices"][0]["message"]["content"]
+                except requests.exceptions.HTTPError as e:
+                    if e.response and e.response.status_code == 429 and key_attempt < max_key_attempts - 1:
                         logger.warning(f"⚠️ Key {self.current_key_index + 1} quota exceeded, switching...")
                         self._switch_to_next_key()
                         continue
+                    raise
+                except Exception as e:
+                    if key_attempt < max_key_attempts - 1:
+                        error_str = str(e)
+                        if "429" in error_str or "quota" in error_str.lower():
+                            logger.warning(f"⚠️ Key {self.current_key_index + 1} quota exceeded, switching...")
+                            self._switch_to_next_key()
+                            continue
                     raise
         
         except Exception as e:
@@ -345,27 +354,26 @@ Cô sẽ cố gắng hỗ trợ em tốt hơn! 💪"""
     
     def generate_chat_title(self, first_message: str) -> str:
         """Generate a friendly title for chat session"""
-        prompt = f"""Tạo tiêu đề ngắn gọn (3-6 từ) cho cuộc tư vấn tâm lý này:
-"{first_message}"
-
-Tiêu đề nên:
-- Ngắn gọn, dễ hiểu
-- Thể hiện chủ đề chính
-- Thân thiện, không khô khan
-
-Chỉ trả về tiêu đề, không giải thích."""
+        prompt = f"""Tạo tiêu đề ngắn gọn (3-6 từ) cho cuộc tư vấn tâm lý này: "{first_message}". Tiêu đề nên ngắn gọn, dễ hiểu, thể hiện chủ đề chính. Chỉ trả về tiêu đề, không giải thích."""
         
         max_key_attempts = len(self.api_keys)
         for key_attempt in range(max_key_attempts):
             try:
-                response = self.model.generate_content(prompt)
-                title = response.text.strip().strip('"').strip("'")
+                res = requests.post(
+                    self.api_url,
+                    headers={"Authorization": f"Bearer {self._get_current_key()}"},
+                    json={"model": self.model_name, "messages": [{"role": "user", "content": prompt}]},
+                    timeout=15
+                )
+                res.raise_for_status()
+                title = res.json()["choices"][0]["message"]["content"].strip().strip('"').strip("'")
                 return title if len(title) <= 50 else title[:47] + "..."
             except Exception as e:
-                error_str = str(e)
-                if ("429" in error_str or "ResourceExhausted" in error_str or "quota" in error_str.lower()) and key_attempt < max_key_attempts - 1:
-                    self._switch_to_next_key()
-                    continue
+                if key_attempt < max_key_attempts - 1:
+                    error_str = str(e)
+                    if ("429" in error_str or "quota" in error_str.lower()) or (hasattr(e, 'response') and e.response and e.response.status_code == 429):
+                        self._switch_to_next_key()
+                        continue
         return "Cuộc trò chuyện mới"
 
 

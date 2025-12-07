@@ -7,21 +7,21 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
     
     # API Keys - Support multiple keys for rotation (up to 15 keys)
-    GEMINI_API_KEY: str
-    GEMINI_API_KEY_2: Optional[str] = None
-    GEMINI_API_KEY_3: Optional[str] = None
-    GEMINI_API_KEY_4: Optional[str] = None
-    GEMINI_API_KEY_5: Optional[str] = None
-    GEMINI_API_KEY_6: Optional[str] = None
-    GEMINI_API_KEY_7: Optional[str] = None
-    GEMINI_API_KEY_8: Optional[str] = None
-    GEMINI_API_KEY_9: Optional[str] = None
-    GEMINI_API_KEY_10: Optional[str] = None
-    GEMINI_API_KEY_11: Optional[str] = None
-    GEMINI_API_KEY_12: Optional[str] = None
-    GEMINI_API_KEY_13: Optional[str] = None
-    GEMINI_API_KEY_14: Optional[str] = None
-    GEMINI_API_KEY_15: Optional[str] = None
+    GROQ_API_KEY: str
+    GROQ_API_KEY_2: Optional[str] = None
+    GROQ_API_KEY_3: Optional[str] = None
+    GROQ_API_KEY_4: Optional[str] = None
+    GROQ_API_KEY_5: Optional[str] = None
+    GROQ_API_KEY_6: Optional[str] = None
+    GROQ_API_KEY_7: Optional[str] = None
+    GROQ_API_KEY_8: Optional[str] = None
+    GROQ_API_KEY_9: Optional[str] = None
+    GROQ_API_KEY_10: Optional[str] = None
+    GROQ_API_KEY_11: Optional[str] = None
+    GROQ_API_KEY_12: Optional[str] = None
+    GROQ_API_KEY_13: Optional[str] = None
+    GROQ_API_KEY_14: Optional[str] = None
+    GROQ_API_KEY_15: Optional[str] = None
     
     # Security
     SECRET_KEY: str
