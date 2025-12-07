@@ -197,8 +197,8 @@ class GeminiService:
             raise ValueError("No Gemini API keys found!")
         
         self.current_key_index = 0
-        self.model_name = 'gemini-2.5-flash-live'
-        self.fallback_model_name = 'gemini-2.0-flash-live'
+        self.model_name = 'gemini-2.5-flash'
+        self.fallback_model_name = 'gemini-2.5-flash-lite'
         self._configure_gemini_with_current_key()
         logger.info(f"🔑 Loaded {len(self.api_keys)} API keys, using key 1/{len(self.api_keys)}")
         self.rag = rag_service
