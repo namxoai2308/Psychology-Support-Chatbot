@@ -15,9 +15,17 @@ app = FastAPI(
 )
 
 # CORS middleware
+allowed_origins = [
+    "http://localhost:3000",
+    "https://psychology-support-chatbot.vercel.app",
+]
+if hasattr(settings, 'FRONTEND_URL') and settings.FRONTEND_URL:
+    if settings.FRONTEND_URL not in allowed_origins:
+        allowed_origins.append(settings.FRONTEND_URL)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

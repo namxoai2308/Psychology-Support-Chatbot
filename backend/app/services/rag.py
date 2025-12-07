@@ -290,6 +290,6 @@ class RAGService:
 # Global instance - no OCR by default (enable in routes if needed)
 rag_service = RAGService(
     use_vision_ocr=False,  # Can enable with settings.USE_VISION_OCR
-    gemini_api_key=settings.GEMINI_API_KEY
+    gemini_api_key=getattr(settings, 'GEMINI_API_KEY', None)  # Optional for OCR
 )
 

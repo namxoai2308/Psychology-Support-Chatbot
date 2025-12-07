@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Mặc định dùng Render URL (production), chỉ dùng localhost nếu có env variable chỉ định
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://psychology-support-chatbot.onrender.com';
 
 const api = axios.create({
