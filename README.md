@@ -5,11 +5,8 @@ AI-powered chatbot for student psychological support with RAG (Retrieval-Augment
 ## ✨ Features
 
 ### For Students
-<<<<<<< HEAD
+
 - 👩‍🏫 **"Cô Xiêm"** - AI teacher with empathy and warmth
-=======
-- 👩‍🏫 **"Cô Mai"** - AI teacher with empathy and warmth
->>>>>>> 5cfe5c654 (Remove pycache and ignore it)
 - 💝 **24/7 psychological support** - Like talking to a real teacher
 - 🧠 **Context-aware** - Remembers entire conversation
 - 📚 **Smart information** - Uses school documents naturally

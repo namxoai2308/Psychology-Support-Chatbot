@@ -1,0 +1,245 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    MỤC LỤC DỰ ÁN STUDENT PSYCHOLOGICAL CHATBOT
+═══════════════════════════════════════════════════════════════════════════════
+
+1. TỔNG QUAN DỰ ÁN
+   1.1. Giới thiệu
+   1.2. Mục đích và phạm vi
+   1.3. Đối tượng sử dụng
+   1.4. Công nghệ chính
+
+2. TÍNH NĂNG CHÍNH
+   2.1. Tính năng cho học sinh
+       2.1.1. AI Teacher "Cô Xiêm" - Trợ lý tâm lý học đường
+       2.1.2. Hỗ trợ tâm lý 24/7
+       2.1.3. Nhớ ngữ cảnh cuộc trò chuyện
+       2.1.4. Tìm kiếm thông minh từ tài liệu nhà trường
+       2.1.5. Giao diện thân thiện kiểu ChatGPT
+   
+   2.2. Tính năng cho giáo viên
+       2.2.1. Upload và quản lý tài liệu PDF
+       2.2.2. Xem lịch sử chat của học sinh
+       2.2.3. Dashboard quản lý
+   
+   2.3. Tính năng kỹ thuật
+       2.3.1. RAG System (Retrieval-Augmented Generation)
+       2.3.2. Xử lý PDF (text và scan)
+       2.3.3. Chat Memory với Gemini ChatSession API
+       2.3.4. Xác thực người dùng (JWT)
+
+3. CẤU TRÚC DỰ ÁN
+   3.1. Backend (FastAPI)
+       3.1.1. app/core/ - Cấu hình, database, bảo mật
+       3.1.2. app/models/ - SQLAlchemy models
+       3.1.3. app/schemas/ - Pydantic schemas
+       3.1.4. app/services/ - Business logic (Gemini AI, RAG)
+       3.1.5. app/routers/ - API routes
+       3.1.6. app/utils/ - Utilities (OCR)
+       3.1.7. app/api/ - API dependencies
+   
+   3.2. Frontend (React)
+       3.2.1. src/pages/ - Các trang (Login, Register, Chat, Dashboard)
+       3.2.2. src/context/ - React Context (Auth)
+       3.2.3. src/services/ - API client
+       3.2.4. public/ - Static files
+   
+   3.3. Database
+       3.3.1. SQLite database (chatbot.db)
+       3.3.2. Models: User, ChatSession, ChatMessage, Document
+   
+   3.4. Uploads & Storage
+       3.4.1. uploads/ - Thư mục chứa PDF đã upload
+       3.4.2. vectorstore/ - Vector store cho RAG
+
+4. HƯỚNG DẪN CÀI ĐẶT
+   4.1. Yêu cầu hệ thống
+       4.1.1. Python 3.10+
+       4.1.2. Node.js 16+
+       4.1.3. API Keys (Gemini - bắt buộc, DeepSeek - tùy chọn)
+   
+   4.2. Cài đặt Backend
+       4.2.1. Cài đặt dependencies
+       4.2.2. Cấu hình môi trường (.env)
+       4.2.3. Khởi tạo database
+       4.2.4. Chạy ứng dụng
+   
+   4.3. Cài đặt Frontend
+       4.3.1. Cài đặt dependencies
+       4.3.2. Cấu hình API endpoint
+       4.3.3. Chạy ứng dụng
+   
+   4.4. Kiểm tra cài đặt
+
+5. CẤU HÌNH
+   5.1. Environment Variables (.env)
+       5.1.1. GEMINI_API_KEY (bắt buộc)
+       5.1.2. DEEPSEEK_API_KEY (tùy chọn)
+       5.1.3. SECRET_KEY
+       5.1.4. DATABASE_URL
+       5.1.5. FRONTEND_URL
+       5.1.6. Các biến khác
+   
+   5.2. Lấy API Keys
+       5.2.1. Gemini API Key
+       5.2.2. DeepSeek API Key (nếu cần OCR)
+
+6. HƯỚNG DẪN SỬ DỤNG
+   6.1. Đăng ký và đăng nhập
+       6.1.1. Tạo tài khoản giáo viên
+       6.1.2. Tạo tài khoản học sinh
+       6.1.3. Đăng nhập
+   
+   6.2. Sử dụng cho giáo viên
+       6.2.1. Upload tài liệu PDF
+       6.2.2. Quản lý tài liệu
+       6.2.3. Xem lịch sử chat học sinh
+   
+   6.3. Sử dụng cho học sinh
+       6.3.1. Tạo phiên chat mới
+       6.3.2. Trò chuyện với AI
+       6.3.3. Xem lịch sử chat
+
+7. TÀI LIỆU API
+   7.1. Authentication API
+       7.1.1. POST /api/auth/register
+       7.1.2. POST /api/auth/login
+       7.1.3. GET /api/auth/me
+   
+   7.2. Chat API
+       7.2.1. POST /api/chat/sessions
+       7.2.2. GET /api/chat/sessions
+       7.2.3. GET /api/chat/sessions/{session_id}
+       7.2.4. POST /api/chat/sessions/{session_id}/messages
+       7.2.5. DELETE /api/chat/sessions/{session_id}
+   
+   7.3. Document API
+       7.3.1. POST /api/documents/upload
+       7.3.2. GET /api/documents
+       7.3.3. DELETE /api/documents/{document_id}
+   
+   7.4. Teacher API
+       7.4.1. GET /api/teacher/students
+       7.4.2. GET /api/teacher/students/{student_id}/sessions
+       7.4.3. GET /api/teacher/students/{student_id}/sessions/{session_id}
+
+8. HƯỚNG DẪN PHÁT TRIỂN
+   8.1. Chạy Backend trong môi trường development
+       8.1.1. Sử dụng uvicorn với auto-reload
+       8.1.2. Debug mode
+       8.1.3. Logging
+   
+   8.2. Chạy Frontend trong môi trường development
+       8.2.1. React development server
+       8.2.2. Hot reload
+   
+   8.3. Quản lý Database
+       8.3.1. Khởi tạo database
+       8.3.2. Migration
+       8.3.3. Backup và restore
+   
+   8.4. Testing
+       8.4.1. Test scripts
+       8.4.2. Test chat history
+       8.4.3. Test OCR và RAG
+
+9. CHI TIẾT KỸ THUẬT
+   9.1. RAG System
+       9.1.1. Keyword-based search
+       9.1.2. Text chunking với LangChain
+       9.1.3. Context injection
+       9.1.4. Relevance scoring
+   
+   9.2. Chat Memory
+       9.2.1. Gemini ChatSession API
+       9.2.2. Context window (10 messages)
+       9.2.3. Session management
+   
+   9.3. PDF Processing
+       9.3.1. PyPDF2 cho text PDFs
+       9.3.2. DeepSeek Vision OCR cho scanned PDFs
+       9.3.3. Auto-fallback mechanism
+   
+   9.4. Authentication & Security
+       9.4.1. JWT tokens
+       9.4.2. Password hashing (bcrypt)
+       9.4.3. Role-based access control
+       9.4.4. CORS configuration
+
+10. TECH STACK
+    10.1. Backend Technologies
+        10.1.1. FastAPI - Web framework
+        10.1.2. SQLAlchemy - ORM
+        10.1.3. SQLite - Database
+        10.1.4. Gemini API - AI responses
+        10.1.5. PyPDF2 - PDF processing
+        10.1.6. LangChain - Text chunking
+        10.1.7. JWT - Authentication
+        10.1.8. DeepSeek Vision - OCR (optional)
+    
+    10.2. Frontend Technologies
+        10.2.1. React - UI framework
+        10.2.2. React Router - Routing
+        10.2.3. Axios - HTTP client
+        10.2.4. Context API - State management
+        10.2.5. React Markdown - Markdown rendering
+
+11. XỬ LÝ SỰ CỐ (TROUBLESHOOTING)
+    11.1. Backend không khởi động
+        11.1.1. Kiểm tra dependencies
+        11.1.2. Kiểm tra API key
+        11.1.3. Kiểm tra port
+        11.1.4. Kiểm tra database
+    
+    11.2. Frontend không khởi động
+        11.2.1. Reinstall dependencies
+        11.2.2. Kiểm tra backend connection
+        11.2.3. Kiểm tra CORS
+    
+    11.3. Chat không nhớ ngữ cảnh
+        11.3.1. Update dependencies
+        11.3.2. Restart backend
+        11.3.3. Kiểm tra ChatSession API
+    
+    11.4. PDF upload thất bại
+        11.4.1. Text PDFs - Kiểm tra PyPDF2
+        11.4.2. Scanned PDFs - Cài đặt poppler
+        11.4.3. DeepSeek OCR - Cấu hình API key
+
+12. ROADMAP & TÍNH NĂNG TƯƠNG LAI
+    12.1. Đã hoàn thành
+        12.1.1. ✓ Basic chat với Gemini
+        12.1.2. ✓ User authentication
+        12.1.3. ✓ RAG system (keyword-based)
+        12.1.4. ✓ DeepSeek Vision OCR
+        12.1.5. ✓ Chat history context
+        12.1.6. ✓ Teacher dashboard
+    
+    12.2. Đang phát triển
+        12.2.1. Semantic search (embeddings)
+        12.2.2. Export chat history
+        12.2.3. Voice chat
+        12.2.4. Mobile app
+
+13. LICENSE & CREDITS
+    13.1. License
+        13.1.1. MIT License
+    
+    13.2. Credits
+        13.2.1. Gemini API - Google AI
+        13.2.2. DeepSeek - DeepSeek AI
+        13.2.3. LangChain - Text processing
+        13.2.4. FastAPI - Backend framework
+        13.2.5. React - Frontend framework
+
+14. PHỤ LỤC
+    14.1. File Structure chi tiết
+    14.2. Database Schema
+    14.3. Environment Variables Reference
+    14.4. API Response Examples
+    14.5. Common Commands
+
+═══════════════════════════════════════════════════════════════════════════════
+                              KẾT THÚC MỤC LỤC
+═══════════════════════════════════════════════════════════════════════════════
+
+
