@@ -184,7 +184,7 @@ FRONTEND_URL=http://localhost:3000
 ```bash
 # Run with auto-reload
 cd backend
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 
 # Or
 python main.py

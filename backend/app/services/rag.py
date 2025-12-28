@@ -3,7 +3,7 @@ RAG Service - Improved keyword-based RAG without embeddings
 Uses Gemini Vision OCR for scanned PDFs (optional)
 """
 import PyPDF2
-from typing import List
+from typing import List, Dict
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sqlalchemy.orm import Session
 from app.models.models import SchoolDocument, DocumentChunk
@@ -129,9 +129,14 @@ class RAGService:
         db: Session, 
         top_k: int = None,
         similarity_threshold: float = None
-    ) -> List[str]:
+    ) -> List[Dict]:
         """
         Search for relevant chunks using improved keyword matching
+        
+        Returns list of dicts with:
+        - chunk_text: str
+        - document_id: int
+        - document_filename: str
         
         Improvements:
         - Vietnamese normalization (bỏ dấu) for better matching
@@ -156,8 +161,9 @@ class RAGService:
         
         print(f"🔍 Query keywords: {query_keywords[:10]}...")
         
-        # Get all chunks
-        all_chunks = db.query(DocumentChunk).all()
+        # Get all chunks with document info
+        from app.models.models import SchoolDocument
+        all_chunks = db.query(DocumentChunk).join(SchoolDocument).all()
         
         if not all_chunks:
             print("⚠️ No documents in database")
@@ -226,14 +232,21 @@ class RAGService:
                 phrase_score * 0.25
             )
             
-            scored_chunks.append((total_score, chunk.chunk_text))
+            scored_chunks.append((
+                total_score, 
+                {
+                    "chunk_text": chunk.chunk_text,
+                    "document_id": chunk.document_id,
+                    "document_filename": chunk.document.filename
+                }
+            ))
         
         # Sort by score and filter by threshold
         scored_chunks.sort(reverse=True, key=lambda x: x[0])
         
         # Filter and get top K
         top_chunks = [
-            content for score, content in scored_chunks 
+            chunk_info for score, chunk_info in scored_chunks 
             if score >= similarity_threshold
         ][:top_k]
         

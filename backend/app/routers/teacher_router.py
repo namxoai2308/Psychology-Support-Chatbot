@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 from app.core.database import get_db
 from app.core.security import get_current_teacher
-from app.models.models import User, ChatSession, ChatMessage
+from app.models.models import User, ChatSession, ChatMessage, Rating
 from app.schemas import StudentChatHistoryResponse, ChatSessionResponse
+from app.schemas.rating import RatingResponse
 
 router = APIRouter(prefix="/api/teacher", tags=["Teacher Dashboard"])
 
@@ -69,6 +71,56 @@ def get_session_details(
         raise HTTPException(status_code=404, detail="Session not found")
     
     return session
+
+
+@router.get("/ratings", response_model=List[RatingResponse])
+def get_all_ratings(
+    current_teacher: User = Depends(get_current_teacher),
+    db: Session = Depends(get_db)
+):
+    """Get all ratings from students (teacher only)"""
+    ratings = db.query(Rating).join(User).filter(
+        User.role == "student"
+    ).order_by(Rating.created_at.desc()).all()
+    
+    return ratings
+
+
+@router.get("/ratings/stats")
+def get_rating_stats(
+    current_teacher: User = Depends(get_current_teacher),
+    db: Session = Depends(get_db)
+):
+    """Get rating statistics (teacher only)"""
+    total_ratings = db.query(func.count(Rating.id)).join(User).filter(
+        User.role == "student"
+    ).scalar() or 0
+    
+    if total_ratings == 0:
+        return {
+            "total_ratings": 0,
+            "average_rating": 0,
+            "rating_distribution": {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+        }
+    
+    avg_rating = db.query(func.avg(Rating.rating)).join(User).filter(
+        User.role == "student"
+    ).scalar() or 0
+    
+    # Get distribution
+    distribution = {}
+    for star in range(1, 6):
+        count = db.query(func.count(Rating.id)).join(User).filter(
+            User.role == "student",
+            Rating.rating == star
+        ).scalar() or 0
+        distribution[star] = count
+    
+    return {
+        "total_ratings": total_ratings,
+        "average_rating": round(float(avg_rating), 2),
+        "rating_distribution": distribution
+    }
 
 
 

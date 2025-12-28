@@ -1,5 +1,5 @@
 """Database models for the chatbot application"""
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.core.database import Base
@@ -44,6 +44,7 @@ class ChatMessage(Base):
     session_id = Column(Integer, ForeignKey("chat_sessions.id"), nullable=False)
     role = Column(String, nullable=False)  # "user" or "assistant"
     content = Column(Text, nullable=False)
+    sources = Column(JSON, nullable=True)  # Document sources used in RAG: [{"id": int, "filename": str}]
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -75,3 +76,17 @@ class DocumentChunk(Base):
     
     # Relationships
     document = relationship("SchoolDocument", back_populates="chunks")
+
+
+class Rating(Base):
+    """Rating model - stores user ratings for chatbot"""
+    __tablename__ = "ratings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    rating = Column(Integer, nullable=False)  # 1-5 stars
+    feedback = Column(Text, nullable=True)  # Optional feedback text
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User")

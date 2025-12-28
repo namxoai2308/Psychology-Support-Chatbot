@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Mặc định dùng Render URL (production), chỉ dùng localhost nếu có env variable chỉ định
+// Production URL - có thể override bằng env variable REACT_APP_API_URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://psychology-support-chatbot.onrender.com';
 
 const api = axios.create({
@@ -26,6 +26,8 @@ export const chatAPI = {
   getSession: (sessionId) => api.get(`/api/chat/sessions/${sessionId}`),
   sendMessage: (sessionId, message) => api.post(`/api/chat/sessions/${sessionId}/messages`, message),
   deleteSession: (sessionId) => api.delete(`/api/chat/sessions/${sessionId}`),
+  getMessageCount: () => api.get('/api/chat/message-count'),
+  submitRating: (ratingData) => api.post('/api/chat/rating', ratingData),
 };
 
 export const teacherAPI = {

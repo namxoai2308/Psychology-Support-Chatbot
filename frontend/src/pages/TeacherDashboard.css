@@ -417,13 +417,337 @@
   color: #8e8ea0;
 }
 
+/* Ratings Section */
+.ratings-section {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.rating-stats-card {
+  background: #2a2b32;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.rating-stats-card h3 {
+  color: #ececf1;
+  margin: 0 0 16px 0;
+  font-size: 1.1rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 16px;
+  background: #343541;
+  border-radius: 8px;
+}
+
+.stat-value {
+  color: #667eea;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  color: #8e8ea0;
+  font-size: 0.85rem;
+}
+
+.rating-distribution h4 {
+  color: #ececf1;
+  margin: 0 0 12px 0;
+  font-size: 0.95rem;
+}
+
+.distribution-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.star-label {
+  color: #ececf1;
+  font-size: 0.9rem;
+  width: 50px;
+  text-align: right;
+}
+
+.distribution-bar {
+  flex: 1;
+  height: 20px;
+  background: #343541;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.distribution-fill {
+  height: 100%;
+  background: #667eea;
+  transition: width 0.3s;
+}
+
+.distribution-count {
+  color: #8e8ea0;
+  font-size: 0.85rem;
+  width: 30px;
+  text-align: right;
+}
+
+.ratings-list h3 {
+  color: #ececf1;
+  margin-bottom: 16px;
+  font-size: 1rem;
+}
+
+.no-ratings {
+  color: #8e8ea0;
+  font-style: italic;
+  text-align: center;
+  padding: 40px;
+}
+
+.rating-item {
+  background: #2a2b32;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.rating-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.rating-stars-display {
+  display: flex;
+  gap: 4px;
+}
+
+.rating-stars-display .star-filled {
+  color: #fbbf24;
+  font-size: 1.2rem;
+}
+
+.rating-stars-display .star-empty {
+  color: #565869;
+  font-size: 1.2rem;
+}
+
+.rating-date {
+  color: #8e8ea0;
+  font-size: 0.85rem;
+}
+
+.rating-feedback-text {
+  color: #ececf1;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #4e4f60;
+}
+
+.sidebar-header-mobile {
+  display: none;
+}
+
+.sidebar-toggle {
+  display: none;
+}
+
+.teacher-main-header {
+  display: none;
+}
+
+/* Mobile Responsive */
 @media (max-width: 768px) {
-  .teacher-sidebar {
-    width: 100%;
-    max-width: 350px;
+  .teacher-dashboard {
+    position: relative;
   }
+
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+
+  .teacher-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    width: 280px;
+    max-width: 85vw;
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+  }
+
+  .teacher-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-header-mobile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid #4e4f60;
+  }
+
+  .sidebar-header-mobile h2 {
+    color: #ececf1;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+
+  .sidebar-toggle {
+    display: block;
+    background: transparent;
+    border: none;
+    color: #ececf1;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.3s;
+  }
+
+  .sidebar-toggle:hover {
+    background: #40414f;
+  }
+
+  .teacher-main-header {
+    display: block;
+    padding: 12px 16px;
+    background: #343541;
+    border-bottom: 1px solid #4e4f60;
+  }
+
+  .teacher-main {
+    width: 100%;
+    padding: 16px;
+  }
+
+  .teacher-header {
+    display: none;
+  }
+
+  .teacher-tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    font-size: 0.85rem;
+    padding: 12px 8px;
+  }
+
   .sessions-list-teacher {
     grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .session-card {
+    padding: 16px;
+  }
+
+  .session-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .session-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .message {
+    gap: 12px;
+  }
+
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+  }
+
+  .message-content {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  .empty-state h2 {
+    font-size: 1.2rem;
+  }
+
+  .empty-state p {
+    font-size: 0.95rem;
+  }
+
+  .documents-section {
+    padding: 16px;
+  }
+
+  .ratings-section {
+    padding: 16px;
+  }
+
+  .rating-stats-card {
+    padding: 16px;
+  }
+
+  .distribution-item {
+    flex-wrap: wrap;
+  }
+
+  .star-label {
+    width: 40px;
+  }
+
+  .distribution-count {
+    width: auto;
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .teacher-sidebar {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .tab-btn {
+    font-size: 0.8rem;
+    padding: 10px 6px;
+  }
+
+  .session-card-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .session-card-header h3 {
+    font-size: 1rem;
   }
 }
 

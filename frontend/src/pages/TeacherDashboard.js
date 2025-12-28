@@ -13,10 +13,23 @@ function TeacherDashboard() {
   const [activeTab, setActiveTab] = useState('students');
   const [documents, setDocuments] = useState([]);
   const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [ratings, setRatings] = useState([]);
+  const [ratingStats, setRatingStats] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
 
   useEffect(() => {
     loadStudentsHistory();
     loadDocuments();
+    loadRatings();
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) setSidebarOpen(true);
+      else setSidebarOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const loadStudentsHistory = async () => {
@@ -37,6 +50,19 @@ function TeacherDashboard() {
       setDocuments(response.data);
     } catch (error) {
       console.error('Error loading documents:', error);
+    }
+  };
+
+  const loadRatings = async () => {
+    try {
+      const [ratingsRes, statsRes] = await Promise.all([
+        teacherAPI.getAllRatings(),
+        teacherAPI.getRatingStats()
+      ]);
+      setRatings(ratingsRes.data);
+      setRatingStats(statsRes.data);
+    } catch (error) {
+      console.error('Error loading ratings:', error);
     }
   };
 
@@ -76,7 +102,14 @@ function TeacherDashboard() {
 
   return (
     <div className="teacher-dashboard">
-      <div className="teacher-sidebar">
+      {sidebarOpen && window.innerWidth <= 768 && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
+      <div className={`teacher-sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-header-mobile">
+          <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
+          <h2>👨‍🏫 Dashboard</h2>
+        </div>
         <div className="teacher-header">
           <h2>👨‍🏫 Dashboard Giáo Viên</h2>
         </div>
@@ -87,6 +120,9 @@ function TeacherDashboard() {
           </button>
           <button className={`tab-btn ${activeTab === 'documents' ? 'active' : ''}`} onClick={() => setActiveTab('documents')}>
             📄 Tài Liệu
+          </button>
+          <button className={`tab-btn ${activeTab === 'ratings' ? 'active' : ''}`} onClick={() => setActiveTab('ratings')}>
+            ⭐ Đánh Giá
           </button>
         </div>
 
@@ -141,6 +177,68 @@ function TeacherDashboard() {
           </div>
         )}
 
+        {activeTab === 'ratings' && (
+          <div className="ratings-section">
+            {ratingStats && (
+              <div className="rating-stats-card">
+                <h3>Thống kê đánh giá</h3>
+                <div className="stats-grid">
+                  <div className="stat-item">
+                    <div className="stat-value">{ratingStats.total_ratings}</div>
+                    <div className="stat-label">Tổng đánh giá</div>
+                  </div>
+                  <div className="stat-item">
+                    <div className="stat-value">{ratingStats.average_rating || 0}</div>
+                    <div className="stat-label">Điểm trung bình</div>
+                  </div>
+                </div>
+                <div className="rating-distribution">
+                  <h4>Phân bố đánh giá</h4>
+                  {[5, 4, 3, 2, 1].map((star) => (
+                    <div key={star} className="distribution-item">
+                      <span className="star-label">{star} sao</span>
+                      <div className="distribution-bar">
+                        <div 
+                          className="distribution-fill"
+                          style={{ 
+                            width: ratingStats.total_ratings > 0 
+                              ? `${(ratingStats.rating_distribution[star] / ratingStats.total_ratings) * 100}%` 
+                              : '0%' 
+                          }}
+                        />
+                      </div>
+                      <span className="distribution-count">{ratingStats.rating_distribution[star] || 0}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="ratings-list">
+              <h3>Đánh giá gần đây</h3>
+              {ratings.length === 0 ? (
+                <p className="no-ratings">Chưa có đánh giá nào</p>
+              ) : (
+                ratings.map((rating) => (
+                  <div key={rating.id} className="rating-item">
+                    <div className="rating-header">
+                      <div className="rating-stars-display">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span key={star} className={star <= rating.rating ? 'star-filled' : 'star-empty'}>★</span>
+                        ))}
+                      </div>
+                      <div className="rating-date">{new Date(rating.created_at).toLocaleString('vi-VN')}</div>
+                    </div>
+                    {rating.feedback && (
+                      <div className="rating-feedback-text">{rating.feedback}</div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="sidebar-footer">
           <div className="user-info">
             <div className="user-name">{user?.full_name || user?.username}</div>
@@ -151,6 +249,11 @@ function TeacherDashboard() {
       </div>
 
       <div className="teacher-main">
+        <div className="teacher-main-header">
+          {window.innerWidth <= 768 && (
+            <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
+          )}
+        </div>
         {!selectedStudent && activeTab === 'students' ? (
           <div className="empty-state">
             <h2>Chọn một học sinh để xem lịch sử trò chuyện</h2>
@@ -160,6 +263,11 @@ function TeacherDashboard() {
           <div className="empty-state">
             <h2>📚 Quản Lý Tài Liệu</h2>
             <p>Upload các file PDF về trường để chatbot có thể cung cấp thông tin chính xác</p>
+          </div>
+        ) : activeTab === 'ratings' ? (
+          <div className="empty-state">
+            <h2>⭐ Đánh Giá Chatbot</h2>
+            <p>Xem thống kê và đánh giá từ học sinh ở sidebar bên trái</p>
           </div>
         ) : selectedSession ? (
           <div className="session-details">

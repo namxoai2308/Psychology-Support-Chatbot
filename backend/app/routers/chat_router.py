@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 from datetime import datetime
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.models import User, ChatSession, ChatMessage
+from app.models.models import User, ChatSession, ChatMessage, Rating
 from app.schemas import (
     ChatSessionCreate, 
     ChatSessionResponse, 
@@ -12,6 +13,7 @@ from app.schemas import (
     MessageResponse,
     ChatSessionListResponse
 )
+from app.schemas.rating import RatingCreate, RatingResponse, MessageCountResponse
 from app.services.gemini import gemini_service
 
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
@@ -123,17 +125,18 @@ def send_message(
     ]
     
     # Generate AI response with Simple RAG (no embedding API needed!)
-    ai_response_text = gemini_service.generate_response(
+    ai_response_text, sources = gemini_service.generate_response(
         message_data.content,
         history_for_ai,
         db  # Pass database session for RAG search
     )
     
-    # Save AI response
+    # Save AI response with sources
     ai_message = ChatMessage(
         session_id=session_id,
         role="assistant",
-        content=ai_response_text
+        content=ai_response_text,
+        sources=sources if sources else None
     )
     db.add(ai_message)
     
@@ -170,5 +173,66 @@ def delete_chat_session(
     db.commit()
     
     return {"message": "Chat session deleted successfully"}
+
+
+@router.get("/message-count", response_model=MessageCountResponse)
+def get_message_count(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get total message count for user and check if should show rating popup"""
+    # Count total user messages (only user messages, not assistant)
+    total_messages = db.query(func.count(ChatMessage.id)).join(
+        ChatSession
+    ).filter(
+        ChatSession.user_id == current_user.id,
+        ChatMessage.role == "user"
+    ).scalar() or 0
+    
+    # Check if user has already rated
+    has_rated = db.query(Rating).filter(
+        Rating.user_id == current_user.id
+    ).first() is not None
+    
+    # Show rating if 10-15 messages and not rated yet
+    should_show_rating = 10 <= total_messages <= 15 and not has_rated
+    
+    return {
+        "total_messages": total_messages,
+        "should_show_rating": should_show_rating
+    }
+
+
+@router.post("/rating", response_model=RatingResponse)
+def submit_rating(
+    rating_data: RatingCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Submit a rating for the chatbot"""
+    # Check if user already rated
+    existing_rating = db.query(Rating).filter(
+        Rating.user_id == current_user.id
+    ).first()
+    
+    if existing_rating:
+        # Update existing rating
+        existing_rating.rating = rating_data.rating
+        existing_rating.feedback = rating_data.feedback
+        db.commit()
+        db.refresh(existing_rating)
+        return existing_rating
+    
+    # Create new rating
+    new_rating = Rating(
+        user_id=current_user.id,
+        rating=rating_data.rating,
+        feedback=rating_data.feedback
+    )
+    db.add(new_rating)
+    db.commit()
+    db.refresh(new_rating)
+    
+    return new_rating
 
 
