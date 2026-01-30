@@ -26,3 +26,5 @@ class MessageCountResponse(BaseModel):
     total_messages: int
     should_show_rating: bool  # True if 10-15 messages and not rated yet
 
+
+
