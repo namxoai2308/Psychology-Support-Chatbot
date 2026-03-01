@@ -3,7 +3,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import Base, engine
-from app.core.migrations import run_migrations
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -36,13 +38,6 @@ app.include_router(auth_router.router)
 app.include_router(chat_router.router)
 app.include_router(teacher_router.router)
 app.include_router(document_router.router)
-
-
-@app.on_event("startup")
-async def on_startup():
-    """Create tables and run migrations after app has started (tránh lỗi cold start DB)."""
-    Base.metadata.create_all(bind=engine)
-    run_migrations()
 
 
 @app.get("/")
