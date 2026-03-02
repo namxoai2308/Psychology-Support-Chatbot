@@ -489,7 +489,7 @@ Cô hiểu con đang lo lắng...
 Vấn đề này nghiêm trọng...
 ```
 
-**NHẮC LẠI:** Từ bây giờ, trong mọi câu trả lời, hãy đóng vai **cô giáo** (không dùng tên cụ thể) theo đầy đủ các nguyên tắc trên và LUÔN đi theo 5 bước tư vấn MỘT CÁCH TỰ NHIÊN, TUYỆT ĐỐI KHÔNG viết các nhãn "[BƯỚC X: ...]" trong response. Lồng các câu hỏi đánh giá một cách tự nhiên theo yêu cầu trên."""
+**NHẮC LẠI:** Từ bây giờ, trong mọi câu trả lời, hãy đóng vai **cô giáo** (không dùng tên cụ thể) theo đầy đủ các nguyên tắc trên và LUÔN đi theo 5 bước tư vấn MỘT CÁCH TỰ NHIÊN, TUYỆT ĐỐI KHÔNG viết các nhãn "[BƯỚC X: ...]" trong response."""
 
 
 class GeminiService:
@@ -516,6 +516,66 @@ class GeminiService:
         self._configure_gemini_with_current_key()
         logger.info(f"🔑 Loaded {len(self.api_keys)} API keys, using key 1/{len(self.api_keys)}")
         self.rag = rag_service
+    
+    def _detect_topic(self, message: str, chat_history: List[Dict[str, str]] | None = None) -> str | None:
+        """Nhận diện chủ đề từ từ khóa trong câu hỏi và lịch sử chat"""
+        text = message.lower()
+        if chat_history:
+            for msg in chat_history:
+                text += " " + msg.get("content", "").lower()
+        
+        keywords = {
+            "kỹ năng sử dụng mạng xã hội": [
+                "mạng xã hội", "facebook", "instagram", "tiktok",
+                "bình luận xấu", "nói xấu online", "lộ thông tin", "nghiện mạng"
+            ],
+            "bắt nạt học đường": [
+                "bắt nạt", "bị đánh", "bị chửi", "cô lập",
+                "trêu chọc", "đe dọa", "tẩy chay", "bạo lực học đường"
+            ],
+            "kỹ năng ứng xử và xây dựng mối quan hệ tốt đẹp": [
+                "không có bạn", "khó kết bạn", "giao tiếp",
+                "mâu thuẫn với bạn", "cô đơn", "không hòa đồng", "quan hệ với bạn"
+            ],
+            "quản lý stress & lo âu trong học tập": [
+                "stress", "lo âu", "căng thẳng", "áp lực học tập",
+                "sợ thi", "lo điểm số", "không ngủ được", "hoảng loạn"
+            ],
+            "tình yêu tuổi học trò và bảo vệ cơ quan sinh dục": [
+                "yêu", "thích ai", "tình cảm", "người yêu",
+                "quan hệ tình dục", "an toàn tình dục",
+                "cơ quan sinh dục", "giới tính", "xâm hại"
+            ],
+            "định hướng nghề nghiệp": [
+                "chọn ngành", "làm gì sau này", "định hướng nghề nghiệp",
+                "chọn nghề", "tương lai", "ngành học", "chọn trường"
+            ],
+        }
+        
+        best_topic = None
+        best_score = 0
+        for topic, kws in keywords.items():
+            score = sum(1 for kw in kws if kw in text)
+            if score > best_score:
+                best_topic = topic
+                best_score = score
+        
+        return best_topic if best_score > 0 else None
+    
+    def _get_book_link(self, topic: str) -> str:
+        """Lấy link sách theo chủ đề (nếu có)"""
+        return BOOK_LINKS.get(topic.lower(), "")
+    
+    def _is_lan_3(self, chat_history: List[Dict[str, str]] | None) -> bool:
+        """
+        Xác định có phải LẦN 3 (user đã hỏi ít nhất 2 lần trước đó) không.
+        - Dựa trên số lượng tin nhắn role='user' trong history_for_ai.
+        """
+        if not chat_history:
+            return False
+        user_turns = sum(1 for msg in chat_history if msg.get("role") == "user")
+        # Lần 3: user_turns == 2 (đang xử lý câu hỏi thứ 3 của học sinh)
+        return user_turns == 2
     
     def _configure_gemini_with_current_key(self):
         """Configure Gemini with current API key"""
@@ -646,13 +706,18 @@ Hãy trả lời dựa trên thông tin trên (nếu liên quan) nhưng ĐỪNG 
                     response = chat.send_message(enhanced_message)
                     response_text = response.text
                     
-                    # Chỉ gắn link ở LẦN 3 (khi đưa giải pháp)
-                    if self._is_lan_3(response_text):
+                    # Chỉ gắn link ở LẦN 3 (khi đưa giải pháp) – xác định theo số lượt hỏi của user
+                    if self._is_lan_3(chat_history):
                         topic = self._detect_topic(message, chat_history)
-                        if topic:
-                            book_link = self._get_book_link(topic)
-                            if book_link and book_link not in response_text:
-                                response_text += f"\n\nNgoài ra, cô có một cuốn sách về {topic} mà con có thể tham khảo thêm để hiểu rõ hơn. Link: {book_link}"
+                        # Nếu không detect được chủ đề, dùng chủ đề mặc định
+                        if not topic:
+                            topic = "kỹ năng ứng xử và xây dựng mối quan hệ tốt đẹp"
+                        book_link = self._get_book_link(topic)
+                        # Fallback: nếu không có link theo chủ đề, lấy link đầu tiên trong BOOK_LINKS
+                        if not book_link and BOOK_LINKS:
+                            topic, book_link = next(iter(BOOK_LINKS.items()))
+                        if book_link and book_link not in response_text:
+                            response_text += f"\n\nNgoài ra, cô có một cuốn sách về {topic} mà con có thể tham khảo thêm để hiểu rõ hơn. Link: {book_link}"
                     
                     logger.info(f"✅ Successfully generated response with {current_model_name} (key {self.current_key_index + 1}/{len(self.api_keys)})")
                     return (response_text, sources)
@@ -694,12 +759,15 @@ Hãy trả lời dựa trên thông tin trên (nếu liên quan) nhưng ĐỪNG 
                                         response_text = response.text
                                         
                                         # Chỉ gắn link ở LẦN 3 (khi đưa giải pháp)
-                                        if self._is_lan_3(response_text):
+                                        if self._is_lan_3(chat_history):
                                             topic = self._detect_topic(message, chat_history)
-                                            if topic:
-                                                book_link = self._get_book_link(topic)
-                                                if book_link and book_link not in response_text:
-                                                    response_text += f"\n\nNgoài ra, cô có một cuốn sách về {topic} mà con có thể tham khảo thêm để hiểu rõ hơn. Link: {book_link}"
+                                            if not topic:
+                                                topic = "kỹ năng ứng xử và xây dựng mối quan hệ tốt đẹp"
+                                            book_link = self._get_book_link(topic)
+                                            if not book_link and BOOK_LINKS:
+                                                topic, book_link = next(iter(BOOK_LINKS.items()))
+                                            if book_link and book_link not in response_text:
+                                                response_text += f"\n\nNgoài ra, cô có một cuốn sách về {topic} mà con có thể tham khảo thêm để hiểu rõ hơn. Link: {book_link}"
                                         
                                         logger.info(f"✅ Successfully generated response with fallback model {current_model_name} (key {self.current_key_index + 1}/{len(self.api_keys)})")
                                         return (response_text, sources)
