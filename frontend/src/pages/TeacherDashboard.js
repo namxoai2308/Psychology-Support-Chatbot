@@ -88,7 +88,7 @@ function TeacherDashboard() {
     formData.append('file', file);
 
     try {
-      const response = await documentAPI.upload(formData);
+      await documentAPI.upload(formData);
       alert('Upload tài liệu thành công!');
       loadDocuments();
     } catch (error) {
