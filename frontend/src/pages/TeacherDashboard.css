@@ -93,6 +93,17 @@
   font-size: 0.85rem;
 }
 
+.student-risk-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #b91c1c;
+  color: #fee2e2;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
 .documents-section {
   flex: 1;
   overflow-y: auto;
@@ -234,6 +245,27 @@
   font-size: 1.5rem;
 }
 
+.risk-alert-banner {
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #7f1d1d;
+  border: 1px solid #fecaca;
+  color: #fee2e2;
+  text-align: left;
+}
+
+.risk-alert-banner h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.4rem;
+}
+
+.risk-alert-banner p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
 .no-sessions {
   color: #8e8ea0;
   font-style: italic;
@@ -254,6 +286,11 @@
   cursor: pointer;
   transition: all 0.3s ease;
   border: 1px solid transparent;
+}
+
+.session-card.risk {
+  border-color: #f97316;
+  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.4);
 }
 
 .session-card:hover {
@@ -280,6 +317,16 @@
   color: #8e8ea0;
   font-size: 0.85rem;
   white-space: nowrap;
+}
+
+.session-risk-pill {
+  margin-left: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #b91c1c;
+  color: #fee2e2;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .session-card-body {

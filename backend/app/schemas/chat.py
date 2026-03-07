@@ -49,6 +49,7 @@ class ChatSessionResponse(BaseModel):
     title: str
     created_at: datetime
     updated_at: datetime
+    has_risk_flag: bool = False
     messages: List[MessageResponse] = []
     
     class Config:

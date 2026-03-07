@@ -138,7 +138,12 @@ function TeacherDashboard() {
                   onClick={() => { setSelectedStudent(student); setSelectedSession(null); }}
                 >
                   <div className="student-info">
-                    <div className="student-name">{student.full_name || student.username}</div>
+                    <div className="student-name">
+                      {student.full_name || student.username}
+                      {student.sessions?.some((s) => s.has_risk_flag) && (
+                        <span className="student-risk-badge">⚠ Nguy cơ cần chú ý</span>
+                      )}
+                    </div>
                     <div className="student-email">{student.email}</div>
                   </div>
                   <div className="student-stats">{student.sessions.length} cuộc trò chuyện</div>
@@ -294,15 +299,32 @@ function TeacherDashboard() {
           </div>
         ) : (
           <div className="sessions-grid">
+            {selectedStudent.sessions.some((s) => s.has_risk_flag) && (
+              <div className="risk-alert-banner">
+                <h2>⚠ CẢNH BÁO AN TOÀN</h2>
+                <p>
+                  Học sinh <strong>{selectedStudent.full_name || selectedStudent.username}</strong> có ít nhất
+                  một cuộc trò chuyện với tín hiệu <strong>tự tử / tự hại</strong>. Vui lòng ưu tiên xem và
+                  liên hệ ngay với học sinh này qua kênh phù hợp (gặp trực tiếp, điện thoại, phụ huynh...).
+                </p>
+              </div>
+            )}
             <h2>Lịch sử trò chuyện của {selectedStudent.full_name || selectedStudent.username}</h2>
             {selectedStudent.sessions.length === 0 ? (
               <p className="no-sessions">Học sinh chưa có cuộc trò chuyện nào</p>
             ) : (
               <div className="sessions-list-teacher">
                 {selectedStudent.sessions.map((session) => (
-                  <div key={session.id} className="session-card" onClick={() => viewSessionDetails(session.id)}>
+                  <div
+                    key={session.id}
+                    className={`session-card ${session.has_risk_flag ? 'risk' : ''}`}
+                    onClick={() => viewSessionDetails(session.id)}
+                  >
                     <div className="session-card-header">
                       <h3>{session.title}</h3>
+                      {session.has_risk_flag && (
+                        <span className="session-risk-pill">⚠ Tín hiệu nguy cơ</span>
+                      )}
                       <div className="session-card-date">{new Date(session.created_at).toLocaleDateString('vi-VN')}</div>
                     </div>
                     <div className="session-card-body">

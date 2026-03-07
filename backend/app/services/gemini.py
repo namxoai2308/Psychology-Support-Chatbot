@@ -6,6 +6,7 @@ from typing import List, Dict, Tuple
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.services.rag import rag_service
+from app.prompts.system_prompt import build_system_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -93,11 +94,6 @@ SYSTEM_PROMPT = """Bạn là cô giáo – giáo viên tư vấn tâm lý học 
 - Động viên trước giải pháp (1-2 câu): "Con không có lỗi gì cả và con xứng đáng được an toàn. Cô tin con có thể vượt qua được."
 - Đề xuất giải pháp (2-3 phương án ngắn gọn): "Dựa trên những gì con chia sẻ, cô nghĩ con có thể thử: 1. [Phương án 1] - [lý do ngắn] 2. [Phương án 2] - [lý do ngắn] 3. [Phương án 3] - [lý do ngắn]"
 - Kế hoạch hành động (ngắn gọn): "Kế hoạch của chúng ta: • Hôm nay: [hành động cụ thể] • Tuần này: [hành động cụ thể]"
-- **GỢI Ý SÁCH (Ở CUỐI LẦN 3):** Sau khi đưa giải pháp và kế hoạch, nếu đã nhận diện được chủ đề phù hợp, gợi ý sách một cách tự nhiên: "Ngoài ra, cô có một cuốn sách về [chủ đề] mà con có thể tham khảo thêm để hiểu rõ hơn. Link: [LINK_SACH_CHU_DE]"
-- **6 chủ đề sách:** 1) Kỹ năng sử dụng mạng xã hội 2) Bắt nạt học đường 3) Kỹ năng ứng xử và xây dựng mối quan hệ tốt đẹp 4) Quản lý stress & lo âu trong học tập 5) Tình yêu tuổi học trò và bảo vệ cơ quan sinh dục 6) Định hướng nghề nghiệp
-- **Nhận diện chủ đề:** Từ từ khóa trong cuộc trò chuyện (mạng xã hội/Facebook/Instagram → chủ đề 1; bắt nạt/đánh/chửi → chủ đề 2; không có bạn/giao tiếp → chủ đề 3; stress/lo âu/áp lực học tập → chủ đề 4; yêu/thích/tình cảm/giới tính → chủ đề 5; chọn ngành/nghề nghiệp → chủ đề 6)
-- **Chỉ gợi ý sách khi:** Đã xác định được chủ đề rõ ràng từ cuộc trò chuyện
-- Độ dài: 7-9 câu (bao gồm gợi ý sách), 140-200 từ
 
 **LẦN 4: ĐỘNG VIÊN VÀ THEO DÕI**
 - Động viên mạnh (2 câu): "Con đã rất dũng cảm khi chia sẻ và tìm cách giải quyết. Cô tin con sẽ làm được."
@@ -127,7 +123,7 @@ SYSTEM_PROMPT = """Bạn là cô giáo – giáo viên tư vấn tâm lý học 
 - LẦN 1: Học sinh: "Con bị bắt nạt" → Bot: "Cô rất lo lắng khi nghe con nói vậy. Cảm ơn con đã tin tưởng và chia sẻ với cô. Con muốn cô giúp gì - con cần giải pháp ngay hay chỉ muốn chia sẻ/an ủi thôi? Con đã rất dũng cảm khi chia sẻ."
 - LẦN 2 (lặp lại nhiều lần): "Cô hiểu con đang rất sợ hãi. Con có thể kể rõ hơn một chút không - ai, làm gì, ở đâu?" → "Con đã nói với ai về chuyện này chưa?" → "Con cảm thấy như thế nào khi điều này xảy ra?"
 - TỔNG HỢP: "Để cô tổng hợp lại: Con đang bị bắt nạt ở [địa điểm], bởi [ai đó], từ [khi nào], và con cảm thấy [cảm xúc]. Con đã [đã làm gì] nhưng [kết quả]. Cô hiểu đúng chưa con?"
-- LẦN 3 (chỉ khi đã hiểu rõ): "Con không có lỗi gì cả. Cô đề xuất: 1. Nói với giáo viên/bố mẹ ngay 2. Ghi lại bằng chứng 3. Tránh ở một mình. Kế hoạch: Hôm nay con sẽ nói với ít nhất 1 người lớn, tuần này con ghi lại các sự việc. Ngoài ra, cô có một cuốn sách về bắt nạt học đường mà con có thể tham khảo thêm để hiểu rõ hơn. Link: [LINK_SACH_BAT_NAT]"
+- LẦN 3 (chỉ khi đã hiểu rõ): "Con không có lỗi gì cả. Cô đề xuất: 1. Nói với giáo viên/bố mẹ ngay 2. Ghi lại bằng chứng 3. Tránh ở một mình. Kế hoạch: Hôm nay con sẽ nói với ít nhất 1 người lớn, tuần này con ghi lại các sự việc."
 - LẦN 4: "Con đã rất dũng cảm. Cô tin con sẽ làm được. Sau 3 ngày, con cho cô biết tình hình nhé!"
 
 #### 4.2. STRESS, LO ÂU, ÁP LỰC HỌC TẬP
@@ -260,6 +256,9 @@ SYSTEM_PROMPT = """Bạn là cô giáo – giáo viên tư vấn tâm lý học 
 
 **Theo dõi và động viên:**
 - "Con không đơn độc. Cuộc sống của con rất quý giá. Cô sẽ hỗ trợ con. Con hãy gọi 111 NGAY BÂY GIỜ!"
+
+# Ghi đè SYSTEM_PROMPT để dùng bản tách modular
+SYSTEM_PROMPT = build_system_prompt()
 
 #### 4.8. BỊ BẠO HÀNH, XÂM HẠI (KHẨN CẤP)
 **BƯỚC 1 - PHẢN ỨNG NGAY:**
@@ -493,28 +492,39 @@ Vấn đề này nghiêm trọng...
 
 
 class GeminiService:
-    """Service for interacting with Gemini AI"""
+    """Service for interacting with Gemini AI.
+    Hỗ trợ nhiều API key (khoảng 10 key): khi key hiện tại hết quota (429/ResourceExhausted)
+    sẽ tự chuyển sang key tiếp theo. Log ra terminal đang dùng API thứ mấy.
+    """
     
     def __init__(self):
-        # Collect all available API keys (up to 15 keys)
-        self.api_keys = [getattr(settings, f'GEMINI_API_KEY{i}' if i > 1 else 'GEMINI_API_KEY') 
-                        for i in range(1, 16) 
-                        if getattr(settings, f'GEMINI_API_KEY{i}' if i > 1 else 'GEMINI_API_KEY', None)]
+        # Load tất cả API key có trong config: GEMINI_API_KEY, GEMINI_API_KEY_2, ..., GEMINI_API_KEY_15
+        self.api_keys = [getattr(settings, 'GEMINI_API_KEY', None)]
+        for i in range(2, 16):
+            key_val = getattr(settings, f'GEMINI_API_KEY_{i}', None)
+            if key_val:
+                self.api_keys.append(key_val)
+        self.api_keys = [k for k in self.api_keys if k]
         
         if not self.api_keys:
             raise ValueError("No Gemini API keys found!")
         
         self.current_key_index = 0
-        self.model_name = 'gemini-2.5-flash'
+        self.model_name = 'gemini-3-flash-preview'
         self.fallback_model_name = 'gemini-2.5-flash-lite'
-        # Cấu hình sinh nội dung: giới hạn độ dài để câu trả lời ngắn gọn, súc tích
+        # Gemini 2.5 Flash là "thinking model": max_output_tokens = thinking + output chung.
+        # Đặt 800 → model dùng hầu hết cho thinking → reply chỉ còn ~100 ký tự (bị cắt).
+        # Đặt đủ lớn (4096) để thinking + reply đều đủ.
         self.generation_config = {
-            "max_output_tokens": 400,
+            "max_output_tokens": 4096,
             "temperature": 0.7,
             "top_p": 0.9,
         }
         self._configure_gemini_with_current_key()
-        logger.info(f"🔑 Loaded {len(self.api_keys)} API keys, using key 1/{len(self.api_keys)}")
+        logger.info(
+            "🔑 Loaded %d API key(s), đang dùng API thứ 1/%d",
+            len(self.api_keys), len(self.api_keys),
+        )
         self.rag = rag_service
     
     def _detect_topic(self, message: str, chat_history: List[Dict[str, str]] | None = None) -> str | None:
@@ -587,40 +597,60 @@ class GeminiService:
         )
     
     def _switch_to_next_key(self):
-        """Switch to next API key when quota exceeded"""
+        """Chuyển sang API key tiếp theo khi key hiện tại hết quota"""
         self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
         self._configure_gemini_with_current_key()
-        logger.warning(f"🔄 Switched to key {self.current_key_index + 1}/{len(self.api_keys)}")
+        logger.warning(
+            "🔄 Hết quota → chuyển sang API thứ %d/%d",
+            self.current_key_index + 1, len(self.api_keys),
+        )
     
     def process_school_pdf(self, pdf_path: str, filename: str, db: Session):
         """Process and save school PDF document"""
         return self.rag.process_and_save_pdf(pdf_path, filename, db)
     
-    def _integrate_context_naturally(self, query: str, context_chunks: List[Dict]) -> str:
-        """Tích hợp context vào câu hỏi một cách tự nhiên"""
+    def _integrate_context_naturally(
+        self,
+        query: str,
+        context_chunks: List[Dict],
+        context_summary: str | None = None,
+    ) -> str:
+        """Tích hợp context vào câu hỏi một cách tự nhiên cho giai đoạn 3 (đề xuất giải pháp)"""
         if not context_chunks:
             return query
         
-        # Limit context length - chỉ lấy top 2 chunks, mỗi chunk max 500 chars
+        # Limit context length - chỉ lấy top 2 chunks, chunk đầu cho phép dài hơn một chút
         limited_chunks = []
-        for chunk_info in context_chunks[:2]:
+        for idx, chunk_info in enumerate(context_chunks[:2]):
             chunk_text = chunk_info["chunk_text"]
-            if len(chunk_text) > 500:
-                chunk_text = chunk_text[:500] + "..."
+            max_len = 700 if idx == 0 else 500
+            if len(chunk_text) > max_len:
+                chunk_text = chunk_text[:max_len] + "..."
             limited_chunks.append(chunk_text)
         
         integrated_context = "\n\n".join(limited_chunks)
         
-        natural_prompt = f"""[Thông tin tham khảo:
-{integrated_context}]
-
-Học sinh hỏi: {query}
-
-Hãy trả lời dựa trên thông tin trên (nếu liên quan) nhưng ĐỪNG nói "dựa theo tài liệu". Trả lời tự nhiên như cô đang chia sẻ kiến thức của mình về trường."""
+        context_block = f"[Thông tin tham khảo (tài liệu chuyên môn của nhà trường):\n{integrated_context}]\n"
+        
+        summary_block = ""
+        if context_summary:
+            summary_block = f"\nBối cảnh cuộc trò chuyện (tóm tắt từ các lượt trao đổi trước đó của học sinh): {context_summary}\n"
+        
+        natural_prompt = (
+            f"{context_block}\n"
+            f"{summary_block}\n"
+            f"Học sinh hỏi: {query}\n\n"
+            "Đây là giai đoạn 3 trong flow tư vấn (đề xuất giải pháp và lập kế hoạch).\n"
+            "Hãy:\n"
+            "- Giữ đúng vai cô giáo trong system prompt (ấm áp, không phán xét).\n"
+            "- Nếu nội dung tham khảo phù hợp, dùng các ý CHÍNH trong đó để gợi ý 2–3 gạch đầu dòng giải pháp CỤ THỂ cho học sinh.\n"
+            "- Luôn kết thúc bằng một kế hoạch hành động rất ngắn: \"Kế hoạch của chúng ta: • Hôm nay: [...] • Tuần này: [...]\".\n"
+            "- KHÔNG nói \"theo tài liệu\" hay trích dẫn cứng; hãy nói tự nhiên như kinh nghiệm của cô."
+        )
         
         return natural_prompt
     
-    def get_relevant_context(self, query: str, db: Session) -> Tuple[List[Dict], bool, List[Dict]]:
+    def get_relevant_context(self, query: str, db: Session, top_k: int = 2) -> Tuple[List[Dict], bool, List[Dict]]:
         """Get relevant context from documents using RAG
         
         Returns:
@@ -629,7 +659,7 @@ Hãy trả lời dựa trên thông tin trên (nếu liên quan) nhưng ĐỪNG 
             - has_context: bool
             - sources: List of unique document info (id, filename)
         """
-        relevant_chunks = self.rag.search_chunks(query, db, top_k=2)
+        relevant_chunks = self.rag.search_chunks(query, db, top_k=top_k)
         if relevant_chunks:
             # Extract unique document sources
             seen_docs = {}
@@ -649,12 +679,29 @@ Hãy trả lời dựa trên thông tin trên (nếu liên quan) nhưng ĐỪNG 
         if len(message) <= max_length:
             return message
         return message[:max_length] + "..."
+
+    def _build_rag_query(self, message: str, chat_history: List[Dict[str, str]] | None) -> str:
+        """
+        Tạo query cho RAG bằng cách gộp câu hỏi hiện tại với 1–2 lượt user gần nhất
+        để có thêm từ khóa về bối cảnh (đặc biệt hữu ích ở giai đoạn 3).
+        """
+        parts: List[str] = [message]
+        if chat_history:
+            user_messages = [m.get("content", "") for m in chat_history if m.get("role") == "user"]
+            # Lấy tối đa 2 lượt user gần nhất trước câu hiện tại
+            for content in user_messages[-2:]:
+                if content:
+                    parts.append(content)
+        rag_query = " \n ".join(parts)
+        # Giới hạn độ dài để tránh query quá dài
+        return self._truncate_message(rag_query, max_length=600)
     
     def generate_response(
         self,
         message: str,
         chat_history: List[Dict[str, str]] = None,
-        db: Session = None
+        db: Session = None,
+        use_context_for_answer: bool = False,
     ) -> Tuple[str, List[Dict]]:
         """Generate AI response with chat history and RAG context
         
@@ -664,9 +711,6 @@ Hãy trả lời dựa trên thông tin trên (nếu liên quan) nhưng ĐỪNG 
             - sources: List[Dict] - List of document sources with id and filename
         """
         try:
-            # Get RAG context if database provided
-            context_chunks, has_context, sources = self.get_relevant_context(message, db) if db else ([], False, [])
-            
             # Truncate user message if too long
             message = self._truncate_message(message, max_length=1000)
             
@@ -682,10 +726,31 @@ Hãy trả lời dựa trên thông tin trên (nếu liên quan) nhưng ĐỪNG 
                         "parts": [truncated_content]
                     })
             
-            # Integrate RAG context naturally
-            if has_context:
-                enhanced_message = self._integrate_context_naturally(message, context_chunks)
+            # Get RAG context if database provided
+            if db:
+                rag_query = self._build_rag_query(message, chat_history) if use_context_for_answer else message
+                context_chunks, has_context, sources = self.get_relevant_context(
+                    rag_query,
+                    db,
+                    top_k=3 if use_context_for_answer else 2,
+                )
             else:
+                context_chunks, has_context, sources = ([], False, [])
+            
+            # Tóm tắt bối cảnh (từ các lượt user trước đó) để giúp model gắn tài liệu với tình huống
+            context_summary = ""
+            if chat_history:
+                user_texts = [m.get("content", "") for m in chat_history if m.get("role") == "user"]
+                if user_texts:
+                    # Lấy 2 lượt cuối, nối lại, cắt gọn
+                    summary_source = " / ".join(user_texts[-2:])
+                    context_summary = self._truncate_message(summary_source, max_length=200)
+            
+            # Tùy chọn: nếu được phép, trộn context vào câu hỏi để dùng chunk cho phần trả lời
+            if has_context and use_context_for_answer:
+                enhanced_message = self._integrate_context_naturally(message, context_chunks, context_summary=context_summary or None)
+            else:
+                # API thuần (không trộn context)
                 enhanced_message = message
             
             # Truncate enhanced message
@@ -702,24 +767,39 @@ Hãy trả lời dựa trên thông tin trên (nếu liên quan) nhưng ĐỪNG 
             # First: Try all keys with primary model
             for key_attempt in range(max_key_attempts):
                 try:
+                    # Log ra terminal đang dùng API thứ mấy
+                    logger.info(
+                        "📡 Đang dùng API thứ %d/%d (model=%s)",
+                        self.current_key_index + 1, len(self.api_keys), current_model_name,
+                    )
                     chat = self.model.start_chat(history=history)
                     response = chat.send_message(enhanced_message)
                     response_text = response.text
-                    
-                    # Chỉ gắn link ở LẦN 3 (khi đưa giải pháp) – xác định theo số lượt hỏi của user
-                    if self._is_lan_3(chat_history):
-                        topic = self._detect_topic(message, chat_history)
-                        # Nếu không detect được chủ đề, dùng chủ đề mặc định
-                        if not topic:
-                            topic = "kỹ năng ứng xử và xây dựng mối quan hệ tốt đẹp"
-                        book_link = self._get_book_link(topic)
-                        # Fallback: nếu không có link theo chủ đề, lấy link đầu tiên trong BOOK_LINKS
-                        if not book_link and BOOK_LINKS:
-                            topic, book_link = next(iter(BOOK_LINKS.items()))
-                        if book_link and book_link not in response_text:
-                            response_text += f"\n\nNgoài ra, cô có một cuốn sách về {topic} mà con có thể tham khảo thêm để hiểu rõ hơn. Link: {book_link}"
-                    
-                    logger.info(f"✅ Successfully generated response with {current_model_name} (key {self.current_key_index + 1}/{len(self.api_keys)})")
+
+                    # Log raw response (giúp debug khi bị cắt/trunc)
+                    finish_reason = ""
+                    if getattr(response, "candidates", None) and len(response.candidates) > 0:
+                        finish_reason = getattr(response.candidates[0], "finish_reason", None) or ""
+                    logger.info(
+                        "💬 Gemini primary response | model=%s | key=%d/%d | length=%d | finish_reason=%s",
+                        current_model_name,
+                        self.current_key_index + 1,
+                        len(self.api_keys),
+                        len(response_text or ""),
+                        finish_reason,
+                    )
+
+                    logger.info(
+                        "📚 Gemini sources (primary): %s",
+                        sources,
+                    )
+
+                    logger.info(
+                        "✅ Successfully generated response with %s (key %d/%d)",
+                        current_model_name,
+                        self.current_key_index + 1,
+                        len(self.api_keys),
+                    )
                     return (response_text, sources)
                 except Exception as e:
                     last_error = e
@@ -728,9 +808,13 @@ Hãy trả lời dựa trên thông tin trên (nếu liên quan) nhưng ĐỪNG 
                     # Check if quota exceeded
                     if ("429" in error_str or "ResourceExhausted" in error_str or "quota" in error_str.lower()):
                         if key_attempt < max_key_attempts - 1:
-                            # Switch to next key
+                            failed_one = self.current_key_index + 1
                             self._switch_to_next_key()
-                            logger.warning(f"⚠️ Key {self.current_key_index}/{len(self.api_keys)} quota exceeded, switched to key {self.current_key_index + 1}/{len(self.api_keys)}")
+                            logger.warning(
+                                "⚠️ API thứ %d/%d hết quota → chuyển sang API thứ %d/%d",
+                                failed_one, len(self.api_keys),
+                                self.current_key_index + 1, len(self.api_keys),
+                            )
                             continue
                         else:
                             # All keys exhausted with primary model, try fallback model
@@ -754,29 +838,46 @@ Hãy trả lời dựa trên thông tin trên (nếu liên quan) nhưng ĐỪNG 
                                 # Try all keys again with fallback model
                                 for fallback_key_attempt in range(max_key_attempts):
                                     try:
+                                        logger.info(
+                                            "📡 Đang dùng API thứ %d/%d (model=%s, fallback)",
+                                            self.current_key_index + 1, len(self.api_keys), current_model_name,
+                                        )
                                         chat = self.model.start_chat(history=history)
                                         response = chat.send_message(enhanced_message)
                                         response_text = response.text
-                                        
-                                        # Chỉ gắn link ở LẦN 3 (khi đưa giải pháp)
-                                        if self._is_lan_3(chat_history):
-                                            topic = self._detect_topic(message, chat_history)
-                                            if not topic:
-                                                topic = "kỹ năng ứng xử và xây dựng mối quan hệ tốt đẹp"
-                                            book_link = self._get_book_link(topic)
-                                            if not book_link and BOOK_LINKS:
-                                                topic, book_link = next(iter(BOOK_LINKS.items()))
-                                            if book_link and book_link not in response_text:
-                                                response_text += f"\n\nNgoài ra, cô có một cuốn sách về {topic} mà con có thể tham khảo thêm để hiểu rõ hơn. Link: {book_link}"
-                                        
-                                        logger.info(f"✅ Successfully generated response with fallback model {current_model_name} (key {self.current_key_index + 1}/{len(self.api_keys)})")
+
+                                        # Log raw response với fallback model (không in full text ra terminal)
+                                        logger.info(
+                                            "💬 Gemini fallback response | model=%s | key=%d/%d | length=%d",
+                                            current_model_name,
+                                            self.current_key_index + 1,
+                                            len(self.api_keys),
+                                            len(response_text or ""),
+                                        )
+
+                                        logger.info(
+                                            "📚 Gemini sources (fallback): %s",
+                                            sources,
+                                        )
+
+                                        logger.info(
+                                            "✅ Successfully generated response with fallback model %s (key %d/%d)",
+                                            current_model_name,
+                                            self.current_key_index + 1,
+                                            len(self.api_keys),
+                                        )
                                         return (response_text, sources)
                                     except Exception as fallback_e:
                                         fallback_error_str = str(fallback_e)
                                         if ("429" in fallback_error_str or "ResourceExhausted" in fallback_error_str or "quota" in fallback_error_str.lower()):
                                             if fallback_key_attempt < max_key_attempts - 1:
+                                                failed_one = self.current_key_index + 1
                                                 self._switch_to_next_key()
-                                                logger.warning(f"⚠️ Fallback model key {self.current_key_index}/{len(self.api_keys)} quota exceeded, switched to key {self.current_key_index + 1}/{len(self.api_keys)}")
+                                                logger.warning(
+                                                    "⚠️ [Fallback] API thứ %d/%d hết quota → chuyển sang API thứ %d/%d",
+                                                    failed_one, len(self.api_keys),
+                                                    self.current_key_index + 1, len(self.api_keys),
+                                                )
                                                 continue
                                         last_error = fallback_e
                                         break
@@ -835,8 +936,13 @@ Cô sẽ cố gắng hỗ trợ em tốt hơn! 💪""", [])
                 error_str = str(e)
                 if ("429" in error_str or "quota" in error_str.lower() or "ResourceExhausted" in error_str):
                     if key_attempt < max_key_attempts - 1:
+                        failed_one = self.current_key_index + 1
                         self._switch_to_next_key()
-                        logger.warning(f"⚠️ Title generation: Key quota exceeded, switched to key {self.current_key_index + 1}/{len(self.api_keys)}")
+                        logger.warning(
+                            "⚠️ [Title] API thứ %d/%d hết quota → chuyển sang API thứ %d/%d",
+                            failed_one, len(self.api_keys),
+                            self.current_key_index + 1, len(self.api_keys),
+                        )
                         continue
                     else:
                         # Try fallback model if available

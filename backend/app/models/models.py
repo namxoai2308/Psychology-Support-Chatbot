@@ -1,5 +1,5 @@
 """Database models for the chatbot application"""
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.core.database import Base
@@ -30,6 +30,7 @@ class ChatSession(Base):
     title = Column(String, default="Cuộc trò chuyện mới")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    has_risk_flag = Column(Boolean, default=False)  # Đánh dấu có nguy cơ tự hại/tự tử trong phiên này
     
     # Relationships
     user = relationship("User", back_populates="chat_sessions")

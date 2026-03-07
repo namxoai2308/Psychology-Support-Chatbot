@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { chatAPI, default as api } from '../services/api';
+import { chatAPI, default as api, API_BASE_URL } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import './Chat.css';
 
@@ -163,12 +163,27 @@ function Chat() {
         alert('Vui lòng đăng nhập lại');
         return;
       }
+
+      // Mở sẵn một tab mới bên cạnh từ thao tác click của người dùng
+      const newWindow = window.open('', '_blank', 'noopener,noreferrer');
+      if (!newWindow) {
+        alert('Trình duyệt đang chặn cửa sổ mới. Vui lòng cho phép mở tab mới để xem tài liệu.');
+        return;
+      }
+
+      // Hiển thị thông báo tạm thời trong tab mới trong lúc tải PDF
+      newWindow.document.write(`
+        <html>
+          <head><title>Đang tải tài liệu${filename ? ' - ' + filename : ''}</title></head>
+          <body style="font-family: sans-serif; padding: 16px;">
+            <p>Đang tải tài liệu <strong>${filename || ''}</strong>, vui lòng đợi một chút...</p>
+          </body>
+        </html>
+      `);
+
+      const url = `${API_BASE_URL}/api/documents/${documentId}/download?inline=true`;
       
-      // Use same base URL as api.js
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://psychology-support-chatbot.onrender.com';
-      const url = `${apiUrl}/api/documents/${documentId}/download?inline=true`;
-      
-      // Fetch PDF with token first
+      // Fetch PDF với token
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -179,20 +194,12 @@ function Chat() {
         throw new Error(`Failed to load PDF: ${response.status} ${response.statusText}`);
       }
       
-      // Create blob
+      // Tạo blob và gán cho tab mới
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
+      newWindow.location.href = blobUrl;
       
-      // Open new tab with blob URL
-      const newWindow = window.open(blobUrl, '_blank', 'noopener,noreferrer');
-      
-      if (!newWindow) {
-        // If popup blocked, try to open in same window
-        window.location.href = blobUrl;
-        return;
-      }
-      
-      // Clean up blob URL when window closes
+      // Dọn blob URL khi tab đóng
       const checkClosed = setInterval(() => {
         if (newWindow.closed) {
           window.URL.revokeObjectURL(blobUrl);
@@ -200,7 +207,7 @@ function Chat() {
         }
       }, 1000);
       
-      // Also clean up after 10 minutes as fallback
+      // Fallback dọn sau 10 phút
       setTimeout(() => {
         window.URL.revokeObjectURL(blobUrl);
         clearInterval(checkClosed);

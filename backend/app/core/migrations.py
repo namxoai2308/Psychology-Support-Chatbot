@@ -57,6 +57,52 @@ def check_and_add_sources_column():
         # Admin can run manual migration if needed
 
 
+def check_and_add_risk_flag_column():
+    """Check if has_risk_flag column exists in chat_sessions, add if not"""
+    try:
+        db_url = settings.DATABASE_URL
+
+        with engine.begin() as conn:
+            if db_url.startswith("postgresql://") or db_url.startswith("postgres://"):
+                # PostgreSQL
+                result = conn.execute(text("""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name='chat_sessions' AND column_name='has_risk_flag'
+                """))
+                exists = result.fetchone() is not None
+
+                if not exists:
+                    logger.info("Adding 'has_risk_flag' column to chat_sessions table (PostgreSQL)...")
+                    conn.execute(text("""
+                        ALTER TABLE chat_sessions
+                        ADD COLUMN has_risk_flag BOOLEAN DEFAULT FALSE
+                    """))
+                    logger.info("✅ Added 'has_risk_flag' column successfully")
+                else:
+                    logger.debug("Column 'has_risk_flag' already exists")
+
+            elif db_url.startswith("sqlite:///"):
+                # SQLite
+                inspector = inspect(engine)
+                columns = [col['name'] for col in inspector.get_columns('chat_sessions')]
+
+                if 'has_risk_flag' not in columns:
+                    logger.info("Adding 'has_risk_flag' column to chat_sessions table (SQLite)...")
+                    conn.execute(text("""
+                        ALTER TABLE chat_sessions
+                        ADD COLUMN has_risk_flag INTEGER DEFAULT 0
+                    """))
+                    logger.info("✅ Added 'has_risk_flag' column successfully")
+                else:
+                    logger.debug("Column 'has_risk_flag' already exists")
+            else:
+                logger.warning(f"Unknown database type: {db_url}")
+
+    except Exception as e:
+        logger.error(f"Error checking/adding has_risk_flag column: {e}")
+
+
 def check_and_add_ratings_table():
     """Check if ratings table exists, create if not"""
     try:
@@ -120,5 +166,6 @@ def run_migrations():
     logger.info("Running database migrations...")
     check_and_add_sources_column()
     check_and_add_ratings_table()
+    check_and_add_risk_flag_column()
     logger.info("Migrations completed")
 

@@ -3,9 +3,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import Base, engine
+from app.core.migrations import run_migrations
 
-# Create database tables
+# Create database tables and run lightweight migrations
 Base.metadata.create_all(bind=engine)
+run_migrations()
 
 # Initialize FastAPI app
 app = FastAPI(

@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-// Production URL - có thể override bằng env variable REACT_APP_API_URL
+// API_BASE_URL: dùng REACT_APP_API_URL nếu được cấu hình (Render/production), 
+// fallback về localhost khi chạy dev.
+// const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://psychology-support-chatbot.onrender.com';
-
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {'Content-Type': 'application/json'},
@@ -14,6 +15,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+export { API_BASE_URL };
 export const authAPI = {
   login: (credentials) => api.post('/api/auth/login', credentials),
   register: (userData) => api.post('/api/auth/register', userData),
