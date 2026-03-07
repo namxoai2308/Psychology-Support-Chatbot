@@ -88,12 +88,17 @@ function TeacherDashboard() {
     formData.append('file', file);
 
     try {
-      await documentAPI.upload(formData);
+      const response = await documentAPI.upload(formData);
       alert('Upload tài liệu thành công!');
       loadDocuments();
     } catch (error) {
       console.error('Error uploading document:', error);
-      alert('Upload thất bại: ' + (error.response?.data?.detail || 'Lỗi không xác định'));
+      const status = error.response?.status;
+      const detail =
+        (error.response?.data && (error.response.data.detail || error.response.data.message)) ||
+        error.message ||
+        'Lỗi không xác định';
+      alert(`Upload thất bại${status ? ' (HTTP ' + status + ')' : ''}: ${detail}`);
     } finally {
       setUploadingDoc(false);
       event.target.value = '';

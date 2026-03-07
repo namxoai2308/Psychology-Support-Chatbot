@@ -36,6 +36,8 @@ export const teacherAPI = {
   getAllStudentsHistory: () => api.get('/api/teacher/students'),
   getStudentSessions: (studentId) => api.get(`/api/teacher/students/${studentId}/sessions`),
   getSessionDetails: (sessionId) => api.get(`/api/teacher/sessions/${sessionId}`),
+  getAllRatings: () => api.get('/api/teacher/ratings'),
+  getRatingStats: () => api.get('/api/teacher/ratings/stats'),
 };
 
 export const documentAPI = {
