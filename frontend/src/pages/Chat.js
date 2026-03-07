@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { chatAPI, default as api, API_BASE_URL } from '../services/api';
+import { chatAPI, API_BASE_URL } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import './Chat.css';
 
