@@ -15,7 +15,8 @@ def check_and_add_sources_column():
         
         with engine.begin() as conn:
             # Check database type
-            if db_url.startswith("postgresql://") or db_url.startswith("postgres://"):
+            # Hỗ trợ cả dạng postgresql:// và postgresql+psycopg2://
+            if db_url.startswith("postgresql") or db_url.startswith("postgres://"):
                 # PostgreSQL
                 result = conn.execute(text("""
                     SELECT column_name 
@@ -63,7 +64,8 @@ def check_and_add_risk_flag_column():
         db_url = settings.DATABASE_URL
 
         with engine.begin() as conn:
-            if db_url.startswith("postgresql://") or db_url.startswith("postgres://"):
+            # Hỗ trợ cả dạng postgresql:// và postgresql+psycopg2://
+            if db_url.startswith("postgresql") or db_url.startswith("postgres://"):
                 # PostgreSQL
                 result = conn.execute(text("""
                     SELECT column_name
@@ -109,7 +111,8 @@ def check_and_add_ratings_table():
         db_url = settings.DATABASE_URL
         
         with engine.begin() as conn:
-            if db_url.startswith("postgresql://") or db_url.startswith("postgres://"):
+            # Hỗ trợ cả dạng postgresql:// và postgresql+psycopg2://
+            if db_url.startswith("postgresql") or db_url.startswith("postgres://"):
                 # PostgreSQL - check if table exists
                 result = conn.execute(text("""
                     SELECT table_name 
