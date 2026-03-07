@@ -9,7 +9,8 @@ db_url = settings.DATABASE_URL
 
 # Detect database type
 is_sqlite = db_url.startswith("sqlite:///")
-is_postgres = db_url.startswith("postgresql://") or db_url.startswith("postgres://")
+# Hỗ trợ cả postgresql://, postgresql+psycopg2://, postgres://
+is_postgres = db_url.startswith("postgresql") or db_url.startswith("postgres://")
 
 # Base connect args
 connect_args = {}
