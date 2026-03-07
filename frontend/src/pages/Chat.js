@@ -157,6 +157,7 @@ function Chat() {
   };
 
   const openPDF = async (documentId, filename) => {
+    let newWindow = null;
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -165,7 +166,7 @@ function Chat() {
       }
 
       // Mở sẵn một tab mới bên cạnh từ thao tác click của người dùng
-      const newWindow = window.open('', '_blank', 'noopener,noreferrer');
+      newWindow = window.open('', '_blank', 'noopener,noreferrer');
       if (!newWindow) {
         alert('Trình duyệt đang chặn cửa sổ mới. Vui lòng cho phép mở tab mới để xem tài liệu.');
         return;
@@ -215,6 +216,27 @@ function Chat() {
       
     } catch (error) {
       console.error('Error opening PDF:', error);
+
+      // Nếu tab mới đã mở mà tải lỗi, hiển thị nội dung lỗi thay vì để about:blank
+      if (newWindow && !newWindow.closed) {
+        try {
+          newWindow.document.open();
+          newWindow.document.write(`
+            <html>
+              <head><title>Lỗi khi mở tài liệu</title></head>
+              <body style="font-family: sans-serif; padding: 16px; color: #f87171; background:#111827;">
+                <h2>Không thể mở tài liệu</h2>
+                <p>Chi tiết lỗi: <code>${error.message}</code></p>
+                <p>Con có thể thử lại sau, hoặc báo cho quản trị viên nếu lỗi tiếp tục xảy ra.</p>
+              </body>
+            </html>
+          `);
+          newWindow.document.close();
+        } catch (_) {
+          // Nếu vì lý do gì đó không ghi được vào tab, bỏ qua
+        }
+      }
+
       alert(`Không thể mở PDF: ${error.message}`);
     }
   };
