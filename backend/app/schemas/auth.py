@@ -5,22 +5,22 @@ from datetime import datetime
 
 
 class UserBase(BaseModel):
-    """Base user schema"""
+    """Base user schema (client không chọn vai trò, mặc định là học sinh)."""
     email: EmailStr
     username: str
     full_name: Optional[str] = None
-    role: str = "student"
 
 
 class UserCreate(UserBase):
-    """Schema for creating a new user"""
+    """Schema for creating a new user (luôn đăng ký dưới vai trò học sinh)."""
     password: str
 
 
 class UserResponse(UserBase):
-    """Schema for user response"""
+    """Schema for user response (trả về thêm vai trò)."""
     id: int
     created_at: datetime
+    role: str
     
     class Config:
         from_attributes = True

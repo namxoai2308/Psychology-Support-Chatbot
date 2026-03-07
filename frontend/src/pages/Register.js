@@ -10,7 +10,6 @@ function Register() {
     password: '',
     confirmPassword: '',
     full_name: '',
-    role: 'student',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,6 +48,7 @@ function Register() {
     setLoading(true);
     try {
       const { confirmPassword, ...userData } = formData;
+      // Mọi tài khoản đăng ký từ đây đều là học sinh
       const response = await register(userData);
       navigate(response.user.role === 'teacher' ? '/teacher' : '/chat');
     } catch (err) {
@@ -128,14 +128,6 @@ function Register() {
               placeholder="Nhập email"
               required
             />
-          </div>
-
-          <div className="form-group">
-            <label>Vai trò</label>
-            <select name="role" value={formData.role} onChange={handleChange}>
-              <option value="student">Học sinh</option>
-              <option value="teacher">Giáo viên</option>
-            </select>
           </div>
 
           {renderPasswordInput('password', 'Mật khẩu', formData.password, () => setShowPassword(!showPassword), showPassword)}
