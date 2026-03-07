@@ -13,6 +13,7 @@ function Chat() {
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
   const [showRatingPopup, setShowRatingPopup] = useState(false);
+  const [pdfViewer, setPdfViewer] = useState({ open: false, blobUrl: null, filename: '', loading: false, error: null });
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -157,7 +158,6 @@ function Chat() {
   };
 
   const openPDF = async (documentId, filename) => {
-    let newWindow = null;
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -165,80 +165,38 @@ function Chat() {
         return;
       }
 
-      // Mở sẵn một tab mới bên cạnh từ thao tác click của người dùng
-      newWindow = window.open('', '_blank', 'noopener,noreferrer');
-      if (!newWindow) {
-        alert('Trình duyệt đang chặn cửa sổ mới. Vui lòng cho phép mở tab mới để xem tài liệu.');
-        return;
-      }
-
-      // Hiển thị thông báo tạm thời trong tab mới trong lúc tải PDF
-      newWindow.document.write(`
-        <html>
-          <head><title>Đang tải tài liệu${filename ? ' - ' + filename : ''}</title></head>
-          <body style="font-family: sans-serif; padding: 16px;">
-            <p>Đang tải tài liệu <strong>${filename || ''}</strong>, vui lòng đợi một chút...</p>
-          </body>
-        </html>
-      `);
+      // Mở modal ngay, hiển thị "Đang tải..." — không dùng window.open nên không bị chặn popup
+      setPdfViewer({ open: true, blobUrl: null, filename: filename || '', loading: true, error: null });
 
       const url = `${API_BASE_URL}/api/documents/${documentId}/download?inline=true`;
-      
-      // Fetch PDF với token
       const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (!response.ok) {
-        throw new Error(`Failed to load PDF: ${response.status} ${response.statusText}`);
+        throw new Error(`${response.status} ${response.statusText}`);
       }
-      
-      // Tạo blob và gán cho tab mới
+
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
-      newWindow.location.href = blobUrl;
-      
-      // Dọn blob URL khi tab đóng
-      const checkClosed = setInterval(() => {
-        if (newWindow.closed) {
-          window.URL.revokeObjectURL(blobUrl);
-          clearInterval(checkClosed);
-        }
-      }, 1000);
-      
-      // Fallback dọn sau 10 phút
-      setTimeout(() => {
-        window.URL.revokeObjectURL(blobUrl);
-        clearInterval(checkClosed);
-      }, 600000);
-      
+      setPdfViewer({ open: true, blobUrl, filename: filename || '', loading: false, error: null });
     } catch (error) {
       console.error('Error opening PDF:', error);
-
-      // Nếu tab mới đã mở mà tải lỗi, hiển thị nội dung lỗi thay vì để about:blank
-      if (newWindow && !newWindow.closed) {
-        try {
-          newWindow.document.open();
-          newWindow.document.write(`
-            <html>
-              <head><title>Lỗi khi mở tài liệu</title></head>
-              <body style="font-family: sans-serif; padding: 16px; color: #f87171; background:#111827;">
-                <h2>Không thể mở tài liệu</h2>
-                <p>Chi tiết lỗi: <code>${error.message}</code></p>
-                <p>Con có thể thử lại sau, hoặc báo cho quản trị viên nếu lỗi tiếp tục xảy ra.</p>
-              </body>
-            </html>
-          `);
-          newWindow.document.close();
-        } catch (_) {
-          // Nếu vì lý do gì đó không ghi được vào tab, bỏ qua
-        }
-      }
-
-      alert(`Không thể mở PDF: ${error.message}`);
+      setPdfViewer({
+        open: true,
+        blobUrl: null,
+        filename: filename || '',
+        loading: false,
+        error: error.message || 'Không thể tải tài liệu'
+      });
     }
+  };
+
+  const closePdfViewer = () => {
+    if (pdfViewer.blobUrl) {
+      window.URL.revokeObjectURL(pdfViewer.blobUrl);
+    }
+    setPdfViewer({ open: false, blobUrl: null, filename: '', loading: false, error: null });
   };
 
   return (
@@ -352,6 +310,31 @@ function Chat() {
           onClose={handleRatingClose}
           onSubmit={handleRatingSubmit}
         />
+      )}
+
+      {pdfViewer.open && (
+        <div className="pdf-viewer-overlay" onClick={closePdfViewer}>
+          <div className="pdf-viewer-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="pdf-viewer-header">
+              <span className="pdf-viewer-title">📄 {pdfViewer.filename || 'Tài liệu'}</span>
+              <button type="button" className="pdf-viewer-close" onClick={closePdfViewer} aria-label="Đóng">×</button>
+            </div>
+            <div className="pdf-viewer-body">
+              {pdfViewer.loading && (
+                <div className="pdf-viewer-loading">Đang tải tài liệu...</div>
+              )}
+              {pdfViewer.error && (
+                <div className="pdf-viewer-error">
+                  <p>Không thể mở tài liệu</p>
+                  <p><code>{pdfViewer.error}</code></p>
+                </div>
+              )}
+              {pdfViewer.blobUrl && !pdfViewer.loading && !pdfViewer.error && (
+                <iframe title={pdfViewer.filename} src={pdfViewer.blobUrl} className="pdf-viewer-iframe" />
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
