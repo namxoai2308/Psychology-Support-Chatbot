@@ -511,7 +511,7 @@ class GeminiService:
         
         self.current_key_index = 0
         self.model_name = 'gemini-3-flash-preview'
-        self.fallback_model_name = 'gemini-2.5-flash-lite'
+        self.fallback_model_name = 'gemini-2.5-flash'
         # Gemini 2.5 Flash là "thinking model": max_output_tokens = thinking + output chung.
         # Đặt 800 → model dùng hầu hết cho thinking → reply chỉ còn ~100 ký tự (bị cắt).
         # Đặt đủ lớn (4096) để thinking + reply đều đủ.
