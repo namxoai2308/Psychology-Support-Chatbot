@@ -43,6 +43,9 @@ def create_default_admin_user():
         db.close()
 
 
+# Import models so Base.metadata knows about all tables before create_all
+from app.models import models  # noqa: F401
+
 # Create database tables, run migrations and seed default admin
 Base.metadata.create_all(bind=engine)
 run_migrations()
